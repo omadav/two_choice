@@ -153,6 +153,8 @@ right_frac = visual.ImageStim(
     color=[1,1,1], colorSpace='rgb', opacity=1,
     flipHoriz=False, flipVert=False,
     texRes=128, interpolate=True, depth=-2.0)
+
+# this is to draw a rectangle when participant fixating on either side
 gaze_ok_region_left = visual.Rect(
     win=win, name='gaze_ok_region_left',
     width=(0.7, 0.7)[0], height=(0.7, 0.7)[1],
@@ -167,6 +169,8 @@ gaze_ok_region_right = visual.Rect(
     lineWidth=2, lineColor=[-1.000,-1.000,-1.000], lineColorSpace='rgb',
     fillColor=None, fillColorSpace='rgb',
     opacity=1, depth=-1.0, interpolate=True)
+
+
 
 # Start Begin Experiment snippet 
 
@@ -815,9 +819,11 @@ for thisTrial in trials:
                 if gaze_in_region_right: # if participant looking at right stim
                     gaze_in_region_right = 'Yes'                 
                     gazeOK_right_list.append(True) # append True to list
+                    gaze_ok_region_right.draw()
                 elif not gaze_in_region_right:
                     gaze_in_region_right = 'No'
                     gazeOK_right_list.append(False)
+                    gaze_ok_region_left.draw()
                 
                 if len(gazeOK_right_list) == window:
                     gazeOK_right_list.pop(0) # delete first element from list; each frame you get one element
@@ -923,13 +929,6 @@ for thisTrial in trials:
     trials.addData('key_resp_2.keys',key_resp_2.keys)
     if key_resp_2.keys != None:  # we had a response
         trials.addData('key_resp_2.rt', key_resp_2.rt)
-    # elif resp_type == "gaze":
-    #     if len(mouse.x): trials.addData('mouse.x', mouse.x[0])
-    #     if len(mouse.y): trials.addData('mouse.y', mouse.y[0])
-    #     if len(mouse.leftButton): trials.addData('mouse.leftButton', mouse.leftButton[0])
-    #     if len(mouse.midButton): trials.addData('mouse.midButton', mouse.midButton[0])
-    #     if len(mouse.rightButton): trials.addData('mouse.rightButton', mouse.rightButton[0])
-    #     if len(mouse.time): trials.addData('mouse.time', mouse.time[0])
 
     # Start End Routine snippet
     if key_resp_2.keys == 'left':
