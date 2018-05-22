@@ -428,7 +428,7 @@ routineTimer.reset()
 # set up handler to look after randomisation of conditions etc
 trials = data.TrialHandler(nReps=1, method='random', 
     extraInfo=expInfo, originPath=-1,
-    trialList=data.importConditions('conditions_'+expInfo['reward']+'.xlsx', selection='40:56'),
+    trialList=data.importConditions('conditions_'+expInfo['reward']+'.xlsx', selection='78:84'),
     seed=None, name='trials')
 thisExp.addLoop(trials)  # add the loop to the experiment
 thisTrial = trials.trialList[0]  # so we can initialise stimuli with some values
@@ -692,7 +692,7 @@ for thisTrial in trials:
     left_frac.setImage(stim1)
     right_frac.setImage(stim2)
     key_resp_2 = event.BuilderKeyResponse()
-    mouse = event.Mouse(win=win)
+    mouse = event.Mouse(win=win, visible=False)
 
     # Start Begin Routine snippet
     
@@ -779,87 +779,87 @@ for thisTrial in trials:
                     # abort routine on response
                     continueRoutine = False
 
-        # get gaze coordinates on each frame
-        #gpos = tracker.getLastGazePosition()        
-        eyeinfo = tracker.getLastSample()
+            # get gaze coordinates on each frame
+            #gpos = tracker.getLastGazePosition()        
+            eyeinfo = tracker.getLastSample()
 
-        # Update stim based on gaze position
-        #valid_gaze_pos = isinstance(gpos, (tuple, list)) # is the participant looking at the screen?
-        valid_gaze_pos = isinstance(eyeinfo, list) 
-        #gaze_in_region_right = valid_gaze_pos and gaze_ok_right.contains(gpos)
-        #gaze_in_region_left = valid_gaze_pos and gaze_ok_left.contains(gpos)     
+            # Update stim based on gaze position
+            #valid_gaze_pos = isinstance(gpos, (tuple, list)) # is the participant looking at the screen?
+            valid_gaze_pos = isinstance(eyeinfo, list) 
+            #gaze_in_region_right = valid_gaze_pos and gaze_ok_right.contains(gpos)
+            #gaze_in_region_left = valid_gaze_pos and gaze_ok_left.contains(gpos)     
 
-        if valid_gaze_pos:
+            if valid_gaze_pos:
+                
+                # if eyeinfo[22] != 0: 
+                x_pos = eyeinfo[12] # xpos from the dictionary, the x coordinate
+                y_pos = eyeinfo[13]
             
-            # if eyeinfo[22] != 0: 
-            x_pos = eyeinfo[12] # xpos from the dictionary, the x coordinate
-            y_pos = eyeinfo[13]
-        
-            gaze_dot.setPos([x_pos, y_pos]) # set position for gaze dot
-            gaze_dot.draw()
-        
-            if x_pos < -100:
-                side = "left"
-            elif x_pos > 100:
-                side = "right"
-            else:
-                side = "center"
+                gaze_dot.setPos([x_pos, y_pos]) # set position for gaze dot
+                gaze_dot.draw()
+            
+                if x_pos < -100:
+                    side = "left"
+                elif x_pos > 100:
+                    side = "right"
+                else:
+                    side = "center"
 
-            # Create True/False for regions where participant is looking
-            gaze_in_region_left = side == "left" 
-            gaze_in_region_right = side == "right"
-            gaze_in_region_center = side == "center"
+                # Create True/False for regions where participant is looking
+                gaze_in_region_left = side == "left" 
+                gaze_in_region_right = side == "right"
+                gaze_in_region_center = side == "center"
 
-            # If participant looking at the screen, check where they are looking
-            # Check for gaze on right stim 
-            if gaze_in_region_right: # if participant looking at right stim
-                gaze_in_region_right = 'Yes'                 
-                gazeOK_right_list.append(True) # append True to list
-            elif not gaze_in_region_right:
-                gaze_in_region_right = 'No'
-                gazeOK_right_list.append(False)
-            
-            if len(gazeOK_right_list) == window:
-                gazeOK_right_list.pop(0) # delete first element from list; each frame you get one element
-            
-            if all(gazeOK_right_list):
-                #mouse.rightButton[0] = 1
-                key_resp_2.keys = "right"
-                #print("RIGHT CHOSEN!")                
-                #msg_to_screen("RIGHT CHOSEN", 0, 0.9)
-                #continueRoutine = False
+                # If participant looking at the screen, check where they are looking
+                # Check for gaze on right stim 
+                if gaze_in_region_right: # if participant looking at right stim
+                    gaze_in_region_right = 'Yes'                 
+                    gazeOK_right_list.append(True) # append True to list
+                elif not gaze_in_region_right:
+                    gaze_in_region_right = 'No'
+                    gazeOK_right_list.append(False)
+                
+                if len(gazeOK_right_list) == window:
+                    gazeOK_right_list.pop(0) # delete first element from list; each frame you get one element
+                
+                if all(gazeOK_right_list):
+                    #mouse.rightButton[0] = 1
+                    key_resp_2.keys = "right"
+                    #print("RIGHT CHOSEN!")                
+                    #msg_to_screen("RIGHT CHOSEN", 0, 0.9)
+                    #continueRoutine = False
 
-            # Check for gaze on left stim 
-            if gaze_in_region_left: # if participant looking at left stim
-                gaze_in_region_left = 'Yes' 
-                gazeOK_left_list.append(True) # append True to list
-            elif not gaze_in_region_left:
-                gaze_in_region_left = 'No'
-                gazeOK_left_list.append(False)
-            
-            if len(gazeOK_left_list) == window:
-                gazeOK_left_list.pop(0) # delete first element from list; each frame you get one element
+                # Check for gaze on left stim 
+                if gaze_in_region_left: # if participant looking at left stim
+                    gaze_in_region_left = 'Yes' 
+                    gazeOK_left_list.append(True) # append True to list
+                elif not gaze_in_region_left:
+                    gaze_in_region_left = 'No'
+                    gazeOK_left_list.append(False)
+                
+                if len(gazeOK_left_list) == window:
+                    gazeOK_left_list.pop(0) # delete first element from list; each frame you get one element
 
-            if all(gazeOK_left_list):
-                #mouse.leftButton[0] = 1
-                key_resp_2.keys = "left"
-                #print("LEFT CHOSEN!")
-                #msg_to_screen("LEFT CHOSEN", 0, 0.9)
-                #continueRoutine = False 
-            # check for No response ("center")
-            if gaze_in_region_center: # if participant looking at center stim
-                gaze_in_region_center = 'Yes'                 
-                gazeOK_center_list.append(True) # append True to list
-            elif not gaze_in_region_center:
-                gaze_in_region_center = 'No'
-                gazeOK_center_list.append(False)
-            
-            if len(gazeOK_center_list) == window:
-                gazeOK_center_list.pop(0) # delete first element from list; each frame you get one element
-            
-            if all(gazeOK_center_list):
-                #mouse.midButton[0] = 1
-                key_resp_2.keys = None # None is assigned as string "none" below
+                if all(gazeOK_left_list):
+                    #mouse.leftButton[0] = 1
+                    key_resp_2.keys = "left"
+                    #print("LEFT CHOSEN!")
+                    #msg_to_screen("LEFT CHOSEN", 0, 0.9)
+                    #continueRoutine = False 
+                # check for No response ("center")
+                if gaze_in_region_center: # if participant looking at center stim
+                    gaze_in_region_center = 'Yes'                 
+                    gazeOK_center_list.append(True) # append True to list
+                elif not gaze_in_region_center:
+                    gaze_in_region_center = 'No'
+                    gazeOK_center_list.append(False)
+                
+                if len(gazeOK_center_list) == window:
+                    gazeOK_center_list.pop(0) # delete first element from list; each frame you get one element
+                
+                if all(gazeOK_center_list):
+                    #mouse.midButton[0] = 1
+                    key_resp_2.keys = None # None is assigned as string "none" below
 
         elif resp_type == "button":
             # *key_resp_2* updates
@@ -876,13 +876,31 @@ for thisTrial in trials:
                 key_resp_2.status = STOPPED
             if key_resp_2.status == STARTED:
                 theseKeys = event.getKeys(keyList=['left', 'right'])
+                        # check for quit:
+                if "escape" in theseKeys:
+                    endExpNow = True
+                if len(theseKeys) > 0:  # at least one key was pressed
+                    key_resp_2.keys = theseKeys[-1]  # just the last key pressed
+                    key_resp_2.rt = key_resp_2.clock.getTime()
+                    # a response ends the routine
+                    continueRoutine = False
         
         # Start Each Frame snippet        
       
         if debug:
             show_debugging_stuff()
 
-            # Finish Each Frame snippet for "Trial" Routine #
+        # Finish Each Frame snippet for "Trial" Routine #
+
+        # check if all components have finished
+        if not continueRoutine:  # a component has requested a forced-end of Routine
+            break
+        continueRoutine = False  # will revert to True if at least one component still running
+        
+        for thisComponent in trialComponents:
+            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                continueRoutine = True
+                break  # at least one component has not yet finished
 
         if endExpNow or event.getKeys(keyList=["escape"]):
             tracker.setConnectionState(False) # stop recording from eye-tracker
