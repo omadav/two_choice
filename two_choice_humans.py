@@ -686,18 +686,21 @@ for thisTrial in trials:
     frameN = -1
     continueRoutine = True
     routineTimer.add(3.00)
+
     # update component parameters for each repeat
     resp_image.setImage(resp_img)
     left_frac.setImage(stim1)
     right_frac.setImage(stim2)
     key_resp_2 = event.BuilderKeyResponse()
     mouse = event.Mouse(win=win)
+
     # Start Begin Routine snippet
     
-    arrow_x_pos = -0.5
-    ISI_duration = 0 #np.random.uniform(2)
+    arrow_x_pos = -0.5    
+    ISI_duration = 1 #np.random.uniform(2)    
+    window = 75 # number of frames to check fixation; monitor runs at 75 HZ
     
-    window = 75 # number of frames to check fixation 
+    # create lists to save booleans for side participant's looking
     gazeOK_left_list = [] # list to save all x positions in the last n frames (n=window)
     gazeOK_right_list = [] # same for right side
     gazeOK_center_list = []
@@ -709,7 +712,7 @@ for thisTrial in trials:
     # Finish Begin Routine snippet    
     
     # keep track of which components have finished
-    trialComponents = [resp_image, left_frac, right_frac, key_resp_2]
+    trialComponents = [resp_image, left_frac, right_frac, key_resp_2, mouse]
     for thisComponent in trialComponents:
         if hasattr(thisComponent, 'status'):
             thisComponent.status = NOT_STARTED
@@ -755,26 +758,27 @@ for thisTrial in trials:
         if right_frac.status == STARTED and t >= frameRemains:
             right_frac.setAutoDraw(False)
         
-        # *key_resp_2* updates
-        if t >= 0.0 and key_resp_2.status == NOT_STARTED:
-            # keep track of start time/frame for later
-            key_resp_2.tStart = t
-            key_resp_2.frameNStart = frameN  # exact frame index
-            key_resp_2.status = STARTED
-            # keyboard checking is just starting
-            win.callOnFlip(key_resp_2.clock.reset)  # t=0 on next screen flip
-            event.clearEvents(eventType='keyboard')
-        frameRemains = 0.0 + 3- win.monitorFramePeriod * 0.75  # most of one frame period left
-        if key_resp_2.status == STARTED and t >= frameRemains:
-            key_resp_2.status = STOPPED
-        if key_resp_2.status == STARTED:
-            theseKeys = event.getKeys(keyList=['left', 'right'])
-        
-        # Start Each Frame snippet        
-      
-        if debug:
-            show_debugging_stuff()        
-        
+        if resp_type == "gaze":
+            # *mouse* updates
+            if t >= 0.0 and mouse.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                mouse.tStart = t
+                mouse.frameNStart = frameN  # exact frame index
+                mouse.status = STARTED
+                event.mouseButtons = [0, 0, 0]  # reset mouse buttons to be 'up'
+            if mouse.status == STARTED:  # only update if started and not stopped!
+                buttons = mouse.getPressed()
+                if sum(buttons) > 0:  # ie if any button is pressed
+                    x, y = mouse.getPos()
+                    mouse.x.append(x)
+                    mouse.y.append(y)
+                    mouse.leftButton.append(buttons[0])
+                    mouse.midButton.append(buttons[1])
+                    mouse.rightButton.append(buttons[2])
+                    mouse.time.append(trialClock.getTime())
+                    # abort routine on response
+                    continueRoutine = False
+
         # get gaze coordinates on each frame
         #gpos = tracker.getLastGazePosition()        
         eyeinfo = tracker.getLastSample()
@@ -819,7 +823,8 @@ for thisTrial in trials:
                 gazeOK_right_list.pop(0) # delete first element from list; each frame you get one element
             
             if all(gazeOK_right_list):
-                key_resp_2.keys = 'right'
+                #mouse.rightButton[0] = 1
+                key_resp_2.keys = "right"
                 #print("RIGHT CHOSEN!")                
                 #msg_to_screen("RIGHT CHOSEN", 0, 0.9)
                 #continueRoutine = False
@@ -836,7 +841,8 @@ for thisTrial in trials:
                 gazeOK_left_list.pop(0) # delete first element from list; each frame you get one element
 
             if all(gazeOK_left_list):
-                key_resp_2.keys = 'left'
+                #mouse.leftButton[0] = 1
+                key_resp_2.keys = "left"
                 #print("LEFT CHOSEN!")
                 #msg_to_screen("LEFT CHOSEN", 0, 0.9)
                 #continueRoutine = False 
@@ -852,29 +858,61 @@ for thisTrial in trials:
                 gazeOK_center_list.pop(0) # delete first element from list; each frame you get one element
             
             if all(gazeOK_center_list):
+                #mouse.midButton[0] = 1
                 key_resp_2.keys = None # None is assigned as string "none" below
-                
+
+        elif resp_type == "button":
+            # *key_resp_2* updates
+            if t >= 0.0 and key_resp_2.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                key_resp_2.tStart = t
+                key_resp_2.frameNStart = frameN  # exact frame index
+                key_resp_2.status = STARTED
+                # keyboard checking is just starting
+                win.callOnFlip(key_resp_2.clock.reset)  # t=0 on next screen flip
+                event.clearEvents(eventType='keyboard')
+            frameRemains = 0.0 + 3- win.monitorFramePeriod * 0.75  # most of one frame period left
+            if key_resp_2.status == STARTED and t >= frameRemains:
+                key_resp_2.status = STOPPED
+            if key_resp_2.status == STARTED:
+                theseKeys = event.getKeys(keyList=['left', 'right'])
+        
+        # Start Each Frame snippet        
+      
+        if debug:
+            show_debugging_stuff()
+
             # Finish Each Frame snippet for "Trial" Routine #
 
-            if endExpNow or event.getKeys(keyList=["escape"]):
-                tracker.setConnectionState(False) # stop recording from eye-tracker
-                io.quit() # stop io connection
-                core.quit()
-            
-            # refresh the screen
-            if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-                win.flip()
+        if endExpNow or event.getKeys(keyList=["escape"]):
+            tracker.setConnectionState(False) # stop recording from eye-tracker
+            io.quit() # stop io connection
+            core.quit()
+        
+        # refresh the screen
+        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
+            win.flip()
     
     # -------Ending Routine "trial"-------
     for thisComponent in trialComponents:
         if hasattr(thisComponent, "setAutoDraw"):
             thisComponent.setAutoDraw(False)
+    
+    # if resp_type == "button":
     # check responses
     if key_resp_2.keys in ['', [], None]:  # No response was made
         key_resp_2.keys=None
     trials.addData('key_resp_2.keys',key_resp_2.keys)
     if key_resp_2.keys != None:  # we had a response
         trials.addData('key_resp_2.rt', key_resp_2.rt)
+    # elif resp_type == "gaze":
+    #     if len(mouse.x): trials.addData('mouse.x', mouse.x[0])
+    #     if len(mouse.y): trials.addData('mouse.y', mouse.y[0])
+    #     if len(mouse.leftButton): trials.addData('mouse.leftButton', mouse.leftButton[0])
+    #     if len(mouse.midButton): trials.addData('mouse.midButton', mouse.midButton[0])
+    #     if len(mouse.rightButton): trials.addData('mouse.rightButton', mouse.rightButton[0])
+    #     if len(mouse.time): trials.addData('mouse.time', mouse.time[0])
+
     # Start End Routine snippet
     if key_resp_2.keys == 'left':
         arrow_x_pos = -0.5    
