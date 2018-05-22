@@ -5,14 +5,12 @@ from __future__ import absolute_import, division
 from psychopy import locale_setup, sound, gui, visual, core, data, event, logging
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
-import numpy as np  # whole numpy lib is available, prepend 'np.'
+import numpy as np, csv, random, pumps # pumps is Wolfgang's code to control pumps
 from numpy import (sin, cos, tan, log, log10, pi, average,
                    sqrt, std, deg2rad, rad2deg, linspace, asarray)
 from numpy.random import random, randint, normal, shuffle
-import os  # handy system and path functions
-import sys  # to get file system encoding
-
-import numpy as np, csv, random, pumps # pumps is Wolfgang's code to control pumps
+import os  
+import sys  
 
 from psychopy.iohub.client import launchHubServer # to make eye tracker work
 
@@ -22,7 +20,7 @@ os.chdir(_thisDir)
 
 # Store info about the experiment session
 expName = 'two_choice_juice_money'  # from the Builder filename that created this script
-expInfo = {u'participant': u'001', u'use_scanner': u'0', u'use_eye_tracker': u'1', u'session': u'001', u'reward': u'juice', u'use_pumps': u'0'}
+expInfo = {u'participant': u'001', u'use_pumps': u'0', u'use_scanner': u'0', u'use_eye_tracker': u'1', u'session': u'001', u'reward': u'juice', u'use_pumps': u'0'}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
@@ -72,24 +70,8 @@ win = visual.Window(
     monitor='testMonitor', color=[0.506,0.506,0.506], colorSpace='rgb',
     blendMode='avg', useFBO=False)
 
-
-#gaze_ok_left = visual.Circle(win, radius=200, units='pix')#,pos=(0,0))#, color='red')#, pos=(-0.7,0))
-#gaze_ok_right = visual.Circle(win, radius=200, units='pix')#, pos=(0.5,0))
-
 gaze_dot = visual.GratingStim(win, tex=None, mask='gauss', pos=(0, 0),
                               size=(66, 66), color='red', units='pix')
-
-# messages to debug eye-tracker during experiment
-# gpos = (0,0)
-# gaze_in_region = "No"
-# gpos_str = 'Eye Position: %.2f, %.2f. In Region: %s\n' %(gpos[0], gpos[1], gaze_in_region)
-# gpos_text_stim = visual.TextStim(win, text=gpos_str, color="yellow", pos=(0,0))
-
-#text_stim_str += 'Press space key to start next trial.'
-#missing_gpos_str = 'Eye Position: MISSING. In Region: No\n'
-#missing_gpos_str += 'Press space key to start next trial.'
-
-#side_str = 'Side: %s' # this is to show which side the participant is looking at
 
 # Calculate the frame rate 
 expInfo['frameRate'] = win.getActualFrameRate()
@@ -170,12 +152,12 @@ gaze_ok_region_right = visual.Rect(
     fillColor=None, fillColorSpace='rgb',
     opacity=1, depth=-1.0, interpolate=True)
 
-
-
 # Start Begin Experiment snippet 
 
-debug = False # are we showing the debugging stuff on the screen?
+debug = True # are we showing the debugging stuff on the screen?
 nMissed = 0
+
+# Handy functions, including Wolfgang's pumps 
 
 def msg_to_screen(msg,x,y, autodraw=False):
     text_object=visual.TextStim(win, text=msg, pos=(x,y), color=u'red')
@@ -184,37 +166,35 @@ def msg_to_screen(msg,x,y, autodraw=False):
 
 def show_debugging_stuff():
 
-    t_txt=visual.TextStim(win, text='t: ' + str(round(t,2)), pos=(-0.5, 0.6), color=u'black')
-    t_txt.draw()
+    #t_txt=visual.TextStim(win, text='t: ' + str(round(t,2)), pos=(-0.5, 0.6), color=u'black')
+    #t_txt.draw()
 
-    globalTimer_txt=visual.TextStim(win, text='timer: ' + str(round(globalClock.getTime(),2)), pos=(0.5, -0.6), color=u'black')
-    globalTimer_txt.draw()
+    #globalTimer_txt=visual.TextStim(win, text='timer: ' + str(round(globalClock.getTime(),2)), pos=(0.5, -0.6), color=u'black')
+    #globalTimer_txt.draw()
 
     # msg_to_screen('Side: %s')%side
     #msg_to_screen('block: ' + str(block), -0.7, -0.9)
-    msg_to_screen('prob1: ' + str(prob1), -0.6, -0.7)
-    msg_to_screen('prob2: '+ str(prob2), -0.6, -0.8)
+    #msg_to_screen('prob1: ' + str(prob1), -0.6, -0.7)
+    #msg_to_screen('prob2: '+ str(prob2), -0.6, -0.8)
     #msg_to_screen('stim1: ' + str(stim1), -0.6, -0.5)
     #msg_to_screen('stim2: '+str(stim2), -0.6, -0.6)
-    msg_to_screen('mag1: '+str(mag1), -0.6, 0.7)
-    msg_to_screen('mag2: '+str(mag2), -0.6, 0.6)
+    #msg_to_screen('mag1: '+str(mag1), -0.6, 0.7)
+    #msg_to_screen('mag2: '+str(mag2), -0.6, 0.6)
     #msg_to_screen('reward: '+str(reward), 0.5, -0.7)
-    msg_to_screen('nMissed: '+str(nMissed), 0.5, -0.8)
+    msg_to_screen('Missed trials: '+str(nMissed), 0.5, 0.9)
 
-#def configure_pumps(volume=.75, diameter=26.77, rate=60, direction='INF', address=0):
-#    ''' configure pumps for the experiment '''
-    
-#    p = pumps.Pump('/dev/ttyUSB0')
+def configure_pumps(volume=.75, diameter=26.77, rate=60, direction='INF', address=0):
+    ''' configure pumps for the experiment '''    
+    p = pumps.Pump('/dev/ttyUSB0')
+    s = p.volume(volume, address=address)  # how much to dispense
+    s = p.diameter(diameter, address=address) # diameter of syringe
+    s = p.rate(rate, address=address) # how fast
+    s = p.direction(direction, address=address) # pump (not suck) liquid
+    return p 
 
-#    s = p.volume(volume, address=address)  # how much to dispense
-#    s = p.diameter(diameter, address=address) # diameter of syringe
-#    s = p.rate(rate, address=address) # how fast
-#    s = p.direction(direction, address=address) # pump (not suck) liquid
-
-#    return p 
-     
-#p = configure_pumps()
-#address = 0 # use first pump
+if expInfo['use_pumps'] == 1:  
+    p = configure_pumps()
+    address = 0 # use first pump
 
 # create a csv file to save response times etc
 file_name = 'data/S%s_%s_%s_%s' %(expInfo['participant'], expInfo['date'], expInfo['session'], expInfo['reward'])
@@ -252,11 +232,9 @@ selection_arrow = visual.ImageStim(
     flipHoriz=False, flipVert=False,
     texRes=128, interpolate=True, depth=-2.0)
 
-
 # Initialize components for Routine "ISI4"
 ISI4Clock = core.Clock()
 isi4 = core.StaticPeriod(win=win, screenHz=expInfo['frameRate'], name='isi4')
-
 
 # Initialize components for Routine "feedback"
 feedbackClock = core.Clock()
@@ -281,11 +259,9 @@ outcome_text = visual.TextStim(win=win, name='outcome_text',
     color='red', colorSpace='rgb', opacity=1,
     depth=-2.0);
 
-
 # Initialize components for Routine "ISI5"
 ISI5Clock = core.Clock()
 isi5 = core.StaticPeriod(win=win, screenHz=expInfo['frameRate'], name='isi5')
-
 
 # Initialize components for Routine "rnf_delivery"
 rnf_deliveryClock = core.Clock()
@@ -296,11 +272,9 @@ rnf_delivery_txt = visual.TextStim(win=win, name='rnf_delivery_txt',
     color='Red', colorSpace='rgb', opacity=1,
     depth=0.0);
 
-
 # Initialize components for Routine "ISI6"
 ISI6Clock = core.Clock()
 isi6 = core.StaticPeriod(win=win, screenHz=expInfo['frameRate'], name='isi6')
-
 
 # Initialize components for Routine "goodbye"
 goodbyeClock = core.Clock()
@@ -316,7 +290,6 @@ nMissed_txt = visual.TextStim(win=win, name='nMissed_txt',
     pos=(0.4, -0.65), height=0.3, wrapWidth=None, ori=0, 
     color='red', colorSpace='rgb', opacity=1,
     depth=-1.0);
-
 
 # Create some handy timers
 globalClock = core.Clock()  # to track the time since experiment started
@@ -482,8 +455,7 @@ for thisTrial in trials:
             first_cue.setAutoDraw(True)
         frameRemains = 0 + 2- win.monitorFramePeriod * 0.75  # most of one frame period left
         if first_cue.status == STARTED and t >= frameRemains:
-            first_cue.setAutoDraw(False)
-        
+            first_cue.setAutoDraw(False)        
         
         # check if all components have finished
         if not continueRoutine:  # a component has requested a forced-end of Routine
@@ -498,8 +470,11 @@ for thisTrial in trials:
         if endExpNow or event.getKeys(keyList=["escape"]):
             core.quit()
         
+        if debug:
+            show_debugging_stuff()
+
         # refresh the screen
-        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
+        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen            
             win.flip()
     
     # -------Ending Routine "cue1"-------
@@ -518,7 +493,7 @@ for thisTrial in trials:
     frameN = -1
     continueRoutine = True
     # update component parameters for each repeat
-    ISI_duration = np.random.uniform(3)
+    ISI_duration = np.random.uniform(2)
     # keep track of which components have finished
     ISI1Components = [isi1]
     for thisComponent in ISI1Components:
@@ -554,6 +529,9 @@ for thisTrial in trials:
         if endExpNow or event.getKeys(keyList=["escape"]):
             core.quit()
         
+        if debug:
+            show_debugging_stuff()
+
         # refresh the screen
         if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
             win.flip()
@@ -600,8 +578,7 @@ for thisTrial in trials:
             second_cue.setAutoDraw(True)
         frameRemains = 0 + 2- win.monitorFramePeriod * 0.75  # most of one frame period left
         if second_cue.status == STARTED and t >= frameRemains:
-            second_cue.setAutoDraw(False)
-        
+            second_cue.setAutoDraw(False)        
         
         # check if all components have finished
         if not continueRoutine:  # a component has requested a forced-end of Routine
@@ -615,7 +592,10 @@ for thisTrial in trials:
         # check for quit (the Esc key)
         if endExpNow or event.getKeys(keyList=["escape"]):
             core.quit()
-        
+
+        if debug:
+            show_debugging_stuff()
+
         # refresh the screen
         if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
             win.flip()
@@ -672,6 +652,9 @@ for thisTrial in trials:
         if endExpNow or event.getKeys(keyList=["escape"]):
             core.quit()
         
+        if debug:
+            show_debugging_stuff()
+
         # refresh the screen
         if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
             win.flip()
@@ -695,13 +678,14 @@ for thisTrial in trials:
     resp_image.setImage(resp_img)
     left_frac.setImage(stim1)
     right_frac.setImage(stim2)
+
     key_resp_2 = event.BuilderKeyResponse()
     mouse = event.Mouse(win=win, visible=False)
 
     # Start Begin Routine snippet
     
     arrow_x_pos = -0.5    
-    ISI_duration = 1 #np.random.uniform(2)    
+    ISI_duration = np.random.uniform(2)    
     window = 75 # number of frames to check fixation; monitor runs at 75 HZ
     
     # create lists to save booleans for side participant's looking
@@ -720,6 +704,10 @@ for thisTrial in trials:
     for thisComponent in trialComponents:
         if hasattr(thisComponent, 'status'):
             thisComponent.status = NOT_STARTED
+
+    # clear ET events and start recording again for this trial
+    io.clearEvents()
+    tracker.setRecordingState(True)
     
     # -------Start Routine "trial"-------
     while continueRoutine and routineTimer.getTime() > 0:
@@ -728,9 +716,9 @@ for thisTrial in trials:
         frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
         # update/draw components on each frame
 
-        # clear ET events and start recording again for this trial
-        io.clearEvents()
-        tracker.setRecordingState(True)
+        # # clear ET events and start recording again for this trial
+        # io.clearEvents()
+        # tracker.setRecordingState(True)
         
         # *resp_image* updates
         if t >= 0.0 and resp_image.status == NOT_STARTED:
@@ -770,30 +758,17 @@ for thisTrial in trials:
                 mouse.frameNStart = frameN  # exact frame index
                 mouse.status = STARTED
                 event.mouseButtons = [0, 0, 0]  # reset mouse buttons to be 'up'
-            if mouse.status == STARTED:  # only update if started and not stopped!
-                buttons = mouse.getPressed()
-                if sum(buttons) > 0:  # ie if any button is pressed
-                    x, y = mouse.getPos()
-                    mouse.x.append(x)
-                    mouse.y.append(y)
-                    mouse.leftButton.append(buttons[0])
-                    mouse.midButton.append(buttons[1])
-                    mouse.rightButton.append(buttons[2])
-                    mouse.time.append(trialClock.getTime())
-                    # abort routine on response
-                    continueRoutine = False
+            
+            if frameN > 1: # this needs to be done to avoid weird trials
+                # get gaze coordinates on each frame            
+                #gpos = tracker.getLastGazePosition()        
+                eyeinfo = tracker.getLastSample()
 
-            # get gaze coordinates on each frame
-            #gpos = tracker.getLastGazePosition()        
-            eyeinfo = tracker.getLastSample()
-
-            # Update stim based on gaze position
-            #valid_gaze_pos = isinstance(gpos, (tuple, list)) # is the participant looking at the screen?
-            valid_gaze_pos = isinstance(eyeinfo, list) 
-            #gaze_in_region_right = valid_gaze_pos and gaze_ok_right.contains(gpos)
-            #gaze_in_region_left = valid_gaze_pos and gaze_ok_left.contains(gpos)     
-
-            if valid_gaze_pos:
+                # Update stim based on gaze position
+                #valid_gaze_pos = isinstance(gpos, (tuple, list)) # is the participant looking at the screen?
+                valid_gaze_pos = isinstance(eyeinfo, list) 
+                #gaze_in_region_right = valid_gaze_pos and gaze_ok_right.contains(gpos)
+                #gaze_in_region_left = valid_gaze_pos and gaze_ok_left.contains(gpos)                 
                 
                 # if eyeinfo[22] != 0: 
                 x_pos = eyeinfo[12] # xpos from the dictionary, the x coordinate
@@ -802,9 +777,9 @@ for thisTrial in trials:
                 gaze_dot.setPos([x_pos, y_pos]) # set position for gaze dot
                 gaze_dot.draw()
             
-                if x_pos < -100:
+                if x_pos < -150:
                     side = "left"
-                elif x_pos > 100:
+                elif x_pos > 150:
                     side = "right"
                 else:
                     side = "center"
@@ -823,22 +798,19 @@ for thisTrial in trials:
                 elif not gaze_in_region_right:
                     gaze_in_region_right = 'No'
                     gazeOK_right_list.append(False)
-                    gaze_ok_region_left.draw()
                 
                 if len(gazeOK_right_list) == window:
                     gazeOK_right_list.pop(0) # delete first element from list; each frame you get one element
                 
                 if all(gazeOK_right_list):
-                    #mouse.rightButton[0] = 1
                     key_resp_2.keys = "right"
-                    #print("RIGHT CHOSEN!")                
-                    #msg_to_screen("RIGHT CHOSEN", 0, 0.9)
-                    #continueRoutine = False
+                    continueRoutine = False
 
                 # Check for gaze on left stim 
                 if gaze_in_region_left: # if participant looking at left stim
                     gaze_in_region_left = 'Yes' 
                     gazeOK_left_list.append(True) # append True to list
+                    gaze_ok_region_left.draw()
                 elif not gaze_in_region_left:
                     gaze_in_region_left = 'No'
                     gazeOK_left_list.append(False)
@@ -847,11 +819,9 @@ for thisTrial in trials:
                     gazeOK_left_list.pop(0) # delete first element from list; each frame you get one element
 
                 if all(gazeOK_left_list):
-                    #mouse.leftButton[0] = 1
                     key_resp_2.keys = "left"
-                    #print("LEFT CHOSEN!")
-                    #msg_to_screen("LEFT CHOSEN", 0, 0.9)
-                    #continueRoutine = False 
+                    continueRoutine = False 
+
                 # check for No response ("center")
                 if gaze_in_region_center: # if participant looking at center stim
                     gaze_in_region_center = 'Yes'                 
@@ -864,7 +834,6 @@ for thisTrial in trials:
                     gazeOK_center_list.pop(0) # delete first element from list; each frame you get one element
                 
                 if all(gazeOK_center_list):
-                    #mouse.midButton[0] = 1
                     key_resp_2.keys = None # None is assigned as string "none" below
 
         elif resp_type == "button":
@@ -922,7 +891,6 @@ for thisTrial in trials:
         if hasattr(thisComponent, "setAutoDraw"):
             thisComponent.setAutoDraw(False)
     
-    # if resp_type == "button":
     # check responses
     if key_resp_2.keys in ['', [], None]:  # No response was made
         key_resp_2.keys=None
@@ -954,6 +922,7 @@ for thisTrial in trials:
     writer_object.writerow(["trial_Off", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
     tracker.setRecordingState(False) # stop recording for this trial
+    #io.clearEvents()
 
     # Finish End Routine snippet
     
@@ -1106,7 +1075,7 @@ for thisTrial in trials:
     frameN = -1
     continueRoutine = True
     # update component parameters for each repeat
-    ISI_duration = np.random.uniform(3)
+    ISI_duration = np.random.uniform(2)
     # keep track of which components have finished
     ISI4Components = [isi4]
     for thisComponent in ISI4Components:
@@ -1277,7 +1246,7 @@ for thisTrial in trials:
     frameN = -1
     continueRoutine = True
     # update component parameters for each repeat
-    ISI_duration = 0 #np.random.uniform(3)
+    ISI_duration = np.random.uniform(2)
     # keep track of which components have finished
     ISI5Components = [isi5]
     for thisComponent in ISI5Components:
@@ -1413,7 +1382,7 @@ for thisTrial in trials:
     frameN = -1
     continueRoutine = True
     # update component parameters for each repeat
-    ISI_duration = 0# np.random.uniform(2.5)
+    ISI_duration = np.random.uniform(2)
     # keep track of which components have finished
     ISI6Components = [isi6]
     for thisComponent in ISI6Components:
