@@ -50,11 +50,13 @@ def scan():
                 pass
     else: # this may or may not work in windows
         # scan for available ports. return a list of tuples (num, name)
+        print "This is a Windows system"
         for i in range(256):
-            try:
-                s = serial.Serial(i)
+            try:                
+                s = serial.Serial()
                 available.append( (i, s.portstr))
                 s.close()
+                #print "Port: " + i
             except serial.SerialException:
                 pass
     return available
