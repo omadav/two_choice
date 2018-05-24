@@ -5,14 +5,14 @@ from __future__ import absolute_import, division
 from psychopy import locale_setup, sound, gui, visual, core, data, event, logging
 from psychopy.constants import (NOT_STARTED, STARTED, PLAYING, PAUSED,
                                 STOPPED, FINISHED, PRESSED, RELEASED, FOREVER)
-import numpy as np, csv, random, pumps # pumps is Wolfgang's code to control pumps
+import numpy as np, csv, random, pumps, time, serial # pumps is Wolfgang's code to control pumps
 from numpy import (sin, cos, tan, log, log10, pi, average,
                    sqrt, std, deg2rad, rad2deg, linspace, asarray)
 from numpy.random import random, randint, normal, shuffle
 import os  
 import sys  
-
 from psychopy.iohub.client import launchHubServer # to make eye tracker work
+
 
 # Ensure that relative paths start from the same directory as this script
 _thisDir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemencoding())
@@ -20,7 +20,8 @@ os.chdir(_thisDir)
 
 # Store info about the experiment session
 expName = 'two_choice_juice_money'  # from the Builder filename that created this script
-expInfo = {u'participant': u'001', u'use_pumps': u'0', u'use_scanner': u'0', u'use_eye_tracker': u'1', u'session': u'001', u'reward': u'juice', u'use_pumps': u'0'}
+expInfo = {u'participant': u'001', u'session': u'001', u'block': u'1', u'use_pumps': u'y',
+ u'use_scanner': u'n', u'use_eye_tracker': u'y', u'reward': u'juice'}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
@@ -183,16 +184,56 @@ def show_debugging_stuff():
     #msg_to_screen('reward: '+str(reward), 0.5, -0.7)
     msg_to_screen('Missed trials: '+str(nMissed), 0.5, 0.9)
 
+def wait_for_scanner():
+    ''' discard the first three scans '''
+    #n_discard = 1
+    wait_stim = visual.TextStim(win, 'Waiting for Scanner ...')
+    #wait_stim.autoDraw = True
+    wait_stim.setAutoDraw(True)
+    win.flip()
+    keys = event.waitKeys(keyList='5')
+    clock = core.Clock() # set clock 0 to time of first scan
+    #log_session_start_time()
+    #wait_stim.setText(str(n_discard - i - 1))
+    #win.flip()
+    wait_stim.setAutoDraw(False)# = False
+    win.flip()
+    return clock
+
+
 def configure_pumps(volume=.75, diameter=26.77, rate=60, direction='INF', address=0):
-    ''' configure pumps for the experiment '''    
-    p = pumps.Pump('/dev/ttyUSB0')
-    s = p.volume(volume, address=address)  # how much to dispense
-    s = p.diameter(diameter, address=address) # diameter of syringe
-    s = p.rate(rate, address=address) # how fast
-    s = p.direction(direction, address=address) # pump (not suck) liquid
+    ''' configure pumps for the experiment 
+    Create serial connection (in Rangel's PC is COM3)
+    This needs to be changed according to which computer
+    is running the task '''
+
+    ser = serial.Serial() # Create serial connection
+    ser.baudrate = 1200 # this is the default rate (1200)
+    ser.port = 'COM3' # change according to name Device Manager shows
+
+    p = pumps.scan()
+
+    if len(p):
+        if len(p) > 1:
+            print "Found more than one pump, that's weird!"
+
+        dev_address = p[0][1]
+
+        p = pumps.Pump(ser.name)
+
+        for address in xrange(3):
+            s = p.volume(volume, address=address)  # how much to dispense
+            s = p.diameter(diameter, address=address) # diameter of syringe
+            s = p.rate(rate, address=address) # how fast
+            s = p.direction(direction, address=address) # pump (not suck) liquid
     return p 
 
-if expInfo['use_pumps'] == 1:  
+def deliver_juice():
+    for squirt in range(mag1):
+        p.run(address)
+        time.sleep(.4)
+
+if expInfo['use_pumps'] == 'y':  
     p = configure_pumps()
     address = 0 # use first pump
 
@@ -268,7 +309,7 @@ rnf_deliveryClock = core.Clock()
 rnf_delivery_txt = visual.TextStim(win=win, name='rnf_delivery_txt',
     text='Any text\n\nincluding line breaks',
     font='Arial',
-    pos=(0, 0), height=0.5, wrapWidth=None, ori=0, 
+    pos=(0, 0), height=0.4, wrapWidth=None, ori=0, 
     color='Red', colorSpace='rgb', opacity=1,
     depth=0.0);
 
@@ -292,115 +333,10 @@ nMissed_txt = visual.TextStim(win=win, name='nMissed_txt',
     depth=-1.0);
 
 # Create some handy timers
-globalClock = core.Clock()  # to track the time since experiment started
-routineTimer = core.CountdownTimer()  # to track time remaining of each (non-slip) routine 
-
-# ------Prepare to start Routine "calibrate"-------
-t = 0
-calibrateClock.reset()  # clock
-frameN = -1
-continueRoutine = True
-# update component parameters for each repeat
-
-# keep track of which components have finished
-calibrateComponents = []
-for thisComponent in calibrateComponents:
-    if hasattr(thisComponent, 'status'):
-        thisComponent.status = NOT_STARTED
-
-# -------Start Routine "calibrate"-------
-while continueRoutine:
-    # get current time
-    t = calibrateClock.getTime()
-    frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-    # update/draw components on each frame
-    
-    # check if all components have finished
-    if not continueRoutine:  # a component has requested a forced-end of Routine
-        break
-    continueRoutine = False  # will revert to True if at least one component still running
-    for thisComponent in calibrateComponents:
-        if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-            continueRoutine = True
-            break  # at least one component has not yet finished
-    
-    # check for quit (the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
-        core.quit()
-    
-    # refresh the screen
-    if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-        win.flip()
-
-# -------Ending Routine "calibrate"-------
-for thisComponent in calibrateComponents:
-    if hasattr(thisComponent, "setAutoDraw"):
-        thisComponent.setAutoDraw(False)
-
-# the Routine "calibrate" was not non-slip safe, so reset the non-slip timer
-routineTimer.reset()
-
-# ------Prepare to start Routine "wait_scanner"-------
-t = 0
-wait_scannerClock.reset()  # clock
-frameN = -1
-continueRoutine = True
-# update component parameters for each repeat
-def wait_for_scanner():
-    ''' discard the first three scans '''
-    n_discard = 3
-    wait_stim = visual.TextStim(win, 'Waiting for Scanner ...')
-    wait_stim.autoDraw = True
-    win.flip()
-    for i in xrange(n_discard):
-        keys = event.waitKeys(keyList='5')
-        if i == 0:
-            clock = core.Clock() # set clock 0 to time of first scan
-            #log_session_start_time()
-        wait_stim.setText(str(n_discard - i - 1))
-        win.flip()
-    wait_stim.autoDraw = False
-    win.flip()
-    return clock
-# keep track of which components have finished
-wait_scannerComponents = []
-for thisComponent in wait_scannerComponents:
-    if hasattr(thisComponent, 'status'):
-        thisComponent.status = NOT_STARTED
-
-# -------Start Routine "wait_scanner"-------
-while continueRoutine:
-    # get current time
-    t = wait_scannerClock.getTime()
-    frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-    # update/draw components on each frame
-    
-    
-    # check if all components have finished
-    if not continueRoutine:  # a component has requested a forced-end of Routine
-        break
-    continueRoutine = False  # will revert to True if at least one component still running
-    for thisComponent in wait_scannerComponents:
-        if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-            continueRoutine = True
-            break  # at least one component has not yet finished
-    
-    # check for quit (the Esc key)
-    if endExpNow or event.getKeys(keyList=["escape"]):
-        core.quit()
-    
-    # refresh the screen
-    if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-        win.flip()
-
-# -------Ending Routine "wait_scanner"-------
-for thisComponent in wait_scannerComponents:
-    if hasattr(thisComponent, "setAutoDraw"):
-        thisComponent.setAutoDraw(False)
-if expInfo['use_scanner'] == 1:
-    wait_for_scanner()
-# the Routine "wait_scanner" was not non-slip safe, so reset the non-slip timer
-routineTimer.reset()
+if expInfo['use_scanner'] == 'y':
+    globalClock = wait_for_scanner() # wait_for_scanner returns the clock that starts when scanner starts
+    #core.Clock()  # to track the time since experiment started
+routineTimer = core.CountdownTimer()  # timer for each routine; resets every time they start
 
 # set up handler to look after randomisation of conditions etc
 trials = data.TrialHandler(nReps=1, method='random', 
@@ -409,7 +345,7 @@ trials = data.TrialHandler(nReps=1, method='random',
     seed=None, name='trials')
 thisExp.addLoop(trials)  # add the loop to the experiment
 thisTrial = trials.trialList[0]  # so we can initialise stimuli with some values
-# abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
+
 if thisTrial != None:
     for paramName in thisTrial.keys():
         exec(paramName + '= thisTrial.' + paramName)
@@ -686,14 +622,14 @@ for thisTrial in trials:
     
     arrow_x_pos = -0.5    
     ISI_duration = np.random.uniform(2)    
-    window = 75 # number of frames to check fixation; monitor runs at 75 HZ
+    window = 60 # number of frames to check fixation; monitor runs at 75 HZ
     
     # create lists to save booleans for side participant's looking
     gazeOK_left_list = [] # list to save all x positions in the last n frames (n=window)
     gazeOK_right_list = [] # same for right side
     gazeOK_center_list = []
 
-    side = 'center'
+    side = None
 
     writer_object.writerow(["trial_On", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
@@ -759,14 +695,17 @@ for thisTrial in trials:
                 mouse.status = STARTED
                 event.mouseButtons = [0, 0, 0]  # reset mouse buttons to be 'up'
             
-            if frameN > 1: # this needs to be done to avoid weird trials
+            eyeinfo = tracker.getLastSample()
+            valid_gaze_pos = isinstance(eyeinfo, list) 
+
+            if frameN > 1 and valid_gaze_pos and eyeinfo[22] != 0: #eyeinfo[22] != 0: # this needs to be done to avoid weird trials
                 # get gaze coordinates on each frame            
                 #gpos = tracker.getLastGazePosition()        
-                eyeinfo = tracker.getLastSample()
+                # eyeinfo = tracker.getLastSample()
 
                 # Update stim based on gaze position
                 #valid_gaze_pos = isinstance(gpos, (tuple, list)) # is the participant looking at the screen?
-                valid_gaze_pos = isinstance(eyeinfo, list) 
+                # valid_gaze_pos = isinstance(eyeinfo, list) 
                 #gaze_in_region_right = valid_gaze_pos and gaze_ok_right.contains(gpos)
                 #gaze_in_region_left = valid_gaze_pos and gaze_ok_left.contains(gpos)                 
                 
@@ -1235,10 +1174,7 @@ for thisTrial in trials:
     right_feedback.setOpacity(1) 
     left_feedback.setOpacity(1)
     
-    #### FINISH END ROUTINE SNIPPET FOR FEEDBACK ROUTINE ####
-    
-    
-    
+    #### FINISH END ROUTINE SNIPPET FOR FEEDBACK ROUTINE ####    
     
     # ------Prepare to start Routine "ISI5"-------
     t = 0
@@ -1299,31 +1235,27 @@ for thisTrial in trials:
     rnf_deliveryClock.reset()  # clock
     frameN = -1
     continueRoutine = True
-    routineTimer.add(0.000000)
+    routineTimer.add(3.000000)
     # update component parameters for each repeat
     writer_object.writerow(["rnf_delivery_On", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
     if isReinforced:
         if reward=="money":
             if key_resp_2.keys == "left":
-                rnf_delivery_txt.setText("You have won %d tokens!" %mag1)
+                rnf_delivery_txt.setText("You have won \n" + "%d tokens!" %mag1)
                 rnf_delivery_txt.setColor([1,1,1], colorSpace="rgb")
             elif key_resp_2.keys == "right":
-                rnf_delivery_txt.setText("You have won %d tokens!" %mag2)
+                rnf_delivery_txt.setText("You have won \n" + "%d tokens!" %mag2)
                 rnf_delivery_txt.setColor([1,1,1], colorSpace="rgb")
         elif reward=="juice":
             if key_resp_2.keys == "left":
-                rnf_delivery_txt.setText("You have won %d squirts of juice!" %mag1)
+                rnf_delivery_txt.setText("You have won \n" + "%d squirts of juice!" %mag1)
                 rnf_delivery_txt.setColor([1,1,1], colorSpace="rgb")
-                #for squirt in range(mag1):
-                #    p.run(address)
-                #    time.sleep(.5)
+                
             elif key_resp_2.keys == "right":
-                rnf_delivery_txt.setText("You have won %d squirts of juice!" %mag2)
+                rnf_delivery_txt.setText("You have won \n" + "%d squirts of juice!" %mag2)
                 rnf_delivery_txt.setColor([1,1,1], colorSpace="rgb")
-                #for squirt in range(mag2):
-                #    p.run(address)
-                #    time.sleep(.5)
+                
     elif not isReinforced:
         rnf_delivery_txt.setText("Nothing won")
         rnf_delivery_txt.setColor([1,-1,-1], colorSpace="rgb")
@@ -1333,6 +1265,9 @@ for thisTrial in trials:
     for thisComponent in rnf_deliveryComponents:
         if hasattr(thisComponent, 'status'):
             thisComponent.status = NOT_STARTED
+
+    if isReinforced and reward=="juice": # use pumps after reinforcement
+        deliver_juice()
     
     # -------Start Routine "rnf_delivery"-------
     while continueRoutine and routineTimer.getTime() > 0:
@@ -1373,6 +1308,8 @@ for thisTrial in trials:
     for thisComponent in rnf_deliveryComponents:
         if hasattr(thisComponent, "setAutoDraw"):
             thisComponent.setAutoDraw(False)
+            if isReinforced and reward=="juice": # use pumps after 
+                deliver_juice()
     writer_object.writerow(["rnf_delivery_Off", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
     
