@@ -21,7 +21,7 @@ os.chdir(_thisDir)
 # Store info about the experiment session
 expName = 'two_choice_juice_money'  # from the Builder filename that created this script
 expInfo = {u'participant': u'001', u'session': u'001', u'block': u'1', u'use_pumps': u'y',
- u'use_scanner': u'n', u'use_eye_tracker': u'y', u'reward': u'juice'}
+ u'use_scanner': u'y', u'use_eye_tracker': u'y', u'reward': u'juice'}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
@@ -179,8 +179,8 @@ def show_debugging_stuff():
     #msg_to_screen('prob2: '+ str(prob2), -0.6, -0.8)
     #msg_to_screen('stim1: ' + str(stim1), -0.6, -0.5)
     #msg_to_screen('stim2: '+str(stim2), -0.6, -0.6)
-    #msg_to_screen('mag1: '+str(mag1), -0.6, 0.7)
-    #msg_to_screen('mag2: '+str(mag2), -0.6, 0.6)
+    msg_to_screen('mag1: '+str(mag1), -0.6, 0.7)
+    msg_to_screen('mag2: '+str(mag2), -0.6, 0.6)
     #msg_to_screen('reward: '+str(reward), 0.5, -0.7)
     msg_to_screen('Missed trials: '+str(nMissed), 0.5, 0.9)
 
@@ -309,7 +309,7 @@ rnf_deliveryClock = core.Clock()
 rnf_delivery_txt = visual.TextStim(win=win, name='rnf_delivery_txt',
     text='Any text\n\nincluding line breaks',
     font='Arial',
-    pos=(0, 0), height=0.4, wrapWidth=None, ori=0, 
+    pos=(0, 0), height=0.1, wrapWidth=None, ori=0, 
     color='Red', colorSpace='rgb', opacity=1,
     depth=0.0);
 
@@ -622,7 +622,7 @@ for thisTrial in trials:
     
     arrow_x_pos = -0.5    
     ISI_duration = np.random.uniform(2)    
-    window = 60 # number of frames to check fixation; monitor runs at 75 HZ
+    window = 70 # number of frames to check fixation; monitor runs at 75 HZ
     
     # create lists to save booleans for side participant's looking
     gazeOK_left_list = [] # list to save all x positions in the last n frames (n=window)
@@ -716,9 +716,9 @@ for thisTrial in trials:
                 gaze_dot.setPos([x_pos, y_pos]) # set position for gaze dot
                 gaze_dot.draw()
             
-                if x_pos < -150:
+                if x_pos < -120:# and y_pos < 100 and y_pos > -100:
                     side = "left"
-                elif x_pos > 150:
+                elif x_pos > 120:# and y_pos < 100 and y_pos > -100:
                     side = "right"
                 else:
                     side = "center"
@@ -731,49 +731,50 @@ for thisTrial in trials:
                 # If participant looking at the screen, check where they are looking
                 # Check for gaze on right stim 
                 if gaze_in_region_right: # if participant looking at right stim
-                    gaze_in_region_right = 'Yes'                 
+                    #gaze_in_region_right = 'Yes'                 
                     gazeOK_right_list.append(True) # append True to list
                     gaze_ok_region_right.draw()
                 elif not gaze_in_region_right:
-                    gaze_in_region_right = 'No'
+                    #gaze_in_region_right = 'No'
                     gazeOK_right_list.append(False)
                 
                 if len(gazeOK_right_list) == window:
                     gazeOK_right_list.pop(0) # delete first element from list; each frame you get one element
-                
-                if all(gazeOK_right_list):
-                    key_resp_2.keys = "right"
-                    continueRoutine = False
 
                 # Check for gaze on left stim 
                 if gaze_in_region_left: # if participant looking at left stim
-                    gaze_in_region_left = 'Yes' 
+                    #gaze_in_region_left = 'Yes' 
                     gazeOK_left_list.append(True) # append True to list
                     gaze_ok_region_left.draw()
                 elif not gaze_in_region_left:
-                    gaze_in_region_left = 'No'
+                    #gaze_in_region_left = 'No'
                     gazeOK_left_list.append(False)
                 
                 if len(gazeOK_left_list) == window:
                     gazeOK_left_list.pop(0) # delete first element from list; each frame you get one element
 
-                if all(gazeOK_left_list):
-                    key_resp_2.keys = "left"
-                    continueRoutine = False 
-
-                # check for No response ("center")
+                # Check for No response ("center")
                 if gaze_in_region_center: # if participant looking at center stim
-                    gaze_in_region_center = 'Yes'                 
+                    #gaze_in_region_center = 'Yes'                 
                     gazeOK_center_list.append(True) # append True to list
                 elif not gaze_in_region_center:
-                    gaze_in_region_center = 'No'
+                    #gaze_in_region_center = 'No'
                     gazeOK_center_list.append(False)
                 
                 if len(gazeOK_center_list) == window:
                     gazeOK_center_list.pop(0) # delete first element from list; each frame you get one element
                 
-                if all(gazeOK_center_list):
+                # if all(gazeOK_center_list):
+
+                if all(gazeOK_right_list):
+                    key_resp_2.keys = "right"
+                    #continueRoutine = False
+                elif all(gazeOK_left_list):
+                    key_resp_2.keys = "left"
+                    #continueRoutine = False 
+                elif all(gazeOK_center_list):
                     key_resp_2.keys = None # None is assigned as string "none" below
+                    #continueRoutine = False
 
         elif resp_type == "button":
             # *key_resp_2* updates
@@ -1265,9 +1266,6 @@ for thisTrial in trials:
     for thisComponent in rnf_deliveryComponents:
         if hasattr(thisComponent, 'status'):
             thisComponent.status = NOT_STARTED
-
-    if isReinforced and reward=="juice": # use pumps after reinforcement
-        deliver_juice()
     
     # -------Start Routine "rnf_delivery"-------
     while continueRoutine and routineTimer.getTime() > 0:
@@ -1303,13 +1301,14 @@ for thisTrial in trials:
         # refresh the screen
         if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
             win.flip()
+
+    if isReinforced and reward=="juice": # use pumps after reinforcement
+        deliver_juice()
     
     # -------Ending Routine "rnf_delivery"-------
     for thisComponent in rnf_deliveryComponents:
         if hasattr(thisComponent, "setAutoDraw"):
             thisComponent.setAutoDraw(False)
-            if isReinforced and reward=="juice": # use pumps after 
-                deliver_juice()
     writer_object.writerow(["rnf_delivery_Off", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
     
