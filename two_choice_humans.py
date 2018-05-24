@@ -29,7 +29,17 @@ expInfo['date'] = data.getDateStr()  # add a simple timestamp
 expInfo['expName'] = expName
 
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
-filename = _thisDir + os.sep + u'data/%s_%s_%s' %(expInfo['participant'], expName, expInfo['date'])
+filename = _thisDir + os.sep + u'data/%s_%s_%s_session%s' %(expInfo['participant'], expName,
+ expInfo['date'], expInfo['session'])
+
+# Create a csv file to save response times etc. Previous one is the native Psychopy file.
+file_name = 'data/S%s_%s_session%s_%s' %(expInfo['participant'], expInfo['date'],
+ expInfo['session'], expInfo['reward'])
+csv_file = open(file_name+'.csv', 'wb')
+writer_object = csv.writer(csv_file, delimiter=",") 
+
+writer_object.writerow(['event', 't', 'participant', 'trial', 'session', 'block', 'reward',
+ 'prob1', 'prob2', 'mag1', 'mag2','resp', 'wasRnf', 'resp_type', 'trial_ID'])
 
 # An ExperimentHandler isn't essential but helps with data saving
 thisExp = data.ExperimentHandler(name=expName, version='',
@@ -228,21 +238,15 @@ def configure_pumps(volume=.75, diameter=26.77, rate=60, direction='INF', addres
             s = p.direction(direction, address=address) # pump (not suck) liquid
     return p 
 
-def deliver_juice():
-    for squirt in range(mag1):
+def deliver_juice(mag):
+    for squirt in range(mag):
         p.run(address)
-        time.sleep(.4)
+        time.sleep(.5)
 
 if expInfo['use_pumps'] == 'y':  
     p = configure_pumps()
     address = 0 # use first pump
 
-# create a csv file to save response times etc
-file_name = 'data/S%s_%s_%s_%s' %(expInfo['participant'], expInfo['date'], expInfo['session'], expInfo['reward'])
-csv_file = open(file_name+'.csv', 'wb')
-writer_object = csv.writer(csv_file, delimiter=",") 
-
-writer_object.writerow(['event', 't', 'participant', 'trial', 'session', 'reward', 'prob1', 'prob2', 'mag1', 'mag2','resp', 'wasRnf', 'resp_type'])
 
 # Initialize components for Routine "ISI3"
 ISI3Clock = core.Clock()
@@ -309,7 +313,7 @@ rnf_deliveryClock = core.Clock()
 rnf_delivery_txt = visual.TextStim(win=win, name='rnf_delivery_txt',
     text='Any text\n\nincluding line breaks',
     font='Arial',
-    pos=(0, 0), height=0.1, wrapWidth=None, ori=0, 
+    pos=(0, 0), height=0.25, wrapWidth=None, ori=0, 
     color='Red', colorSpace='rgb', opacity=1,
     depth=0.0);
 
@@ -336,6 +340,9 @@ nMissed_txt = visual.TextStim(win=win, name='nMissed_txt',
 if expInfo['use_scanner'] == 'y':
     globalClock = wait_for_scanner() # wait_for_scanner returns the clock that starts when scanner starts
     #core.Clock()  # to track the time since experiment started
+else:
+    globalClock = core.Clock() # create global clock in case scanner is not used
+
 routineTimer = core.CountdownTimer()  # timer for each routine; resets every time they start
 
 # set up handler to look after randomisation of conditions etc
@@ -345,6 +352,10 @@ trials = data.TrialHandler(nReps=1, method='random',
     seed=None, name='trials')
 thisExp.addLoop(trials)  # add the loop to the experiment
 thisTrial = trials.trialList[0]  # so we can initialise stimuli with some values
+
+##########################
+# EXPERIMENT STARTS HERE #
+##########################
 
 if thisTrial != None:
     for paramName in thisTrial.keys():
@@ -357,195 +368,408 @@ for thisTrial in trials:
         for paramName in thisTrial.keys():
             exec(paramName + '= thisTrial.' + paramName)
     
-    # ------Prepare to start Routine "cue1"-------
-    t = 0
-    cue1Clock.reset()  # clock
-    frameN = -1
-    continueRoutine = True
-    routineTimer.add(1.000000)
-    # update component parameters for each repeat
-    first_cue.setImage(stim1)
-    # START BEGIN ROUTINE CUE1 SNIPPET
-    
-    writer_object.writerow(["cue1_On", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
-    
-    # END BEGIN ROUTINE CUE1 SNIPPET
-    # keep track of which components have finished
-    cue1Components = [first_cue]
-    for thisComponent in cue1Components:
-        if hasattr(thisComponent, 'status'):
-            thisComponent.status = NOT_STARTED
-    
-    # -------Start Routine "cue1"-------
-    while continueRoutine and routineTimer.getTime() > 0:
-        # get current time
-        t = cue1Clock.getTime()
-        frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-        # update/draw components on each frame
+    first_cue_presented = np.random.randint(1, 3) # sample 1 or 2 (3 excluded in Python)
+
+    if first_cue_presented == 1:
+
+        # ------Prepare to start Routine "cue1"-------
+        t = 0
+        cue1Clock.reset()  # clock
+        frameN = -1
+        continueRoutine = True
+        routineTimer.add(1.000000)
+        # update component parameters for each repeat
+        first_cue.setImage(stim1)
+        # START BEGIN ROUTINE CUE1 SNIPPET
         
-        # *first_cue* updates
-        if t >= 0 and first_cue.status == NOT_STARTED:
-            # keep track of start time/frame for later
-            first_cue.tStart = t
-            first_cue.frameNStart = frameN  # exact frame index
-            first_cue.setAutoDraw(True)
-        frameRemains = 0 + 2- win.monitorFramePeriod * 0.75  # most of one frame period left
-        if first_cue.status == STARTED and t >= frameRemains:
-            first_cue.setAutoDraw(False)        
-        
-        # check if all components have finished
-        if not continueRoutine:  # a component has requested a forced-end of Routine
-            break
-        continueRoutine = False  # will revert to True if at least one component still running
+        writer_object.writerow(["cue1_On", str(globalClock.getTime()), expInfo['participant'],
+         str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
+          str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+
+        # END BEGIN ROUTINE CUE1 SNIPPET
+
+        # keep track of which components have finished
+        cue1Components = [first_cue]
         for thisComponent in cue1Components:
-            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                continueRoutine = True
-                break  # at least one component has not yet finished
+            if hasattr(thisComponent, 'status'):
+                thisComponent.status = NOT_STARTED
         
-        # check for quit (the Esc key)
-        if endExpNow or event.getKeys(keyList=["escape"]):
-            core.quit()
-        
-        if debug:
-            show_debugging_stuff()
+        # -------Start Routine "cue1"-------
+        while continueRoutine and routineTimer.getTime() > 0:
+            # get current time
+            t = cue1Clock.getTime()
+            frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
+            # update/draw components on each frame
+            
+            # *first_cue* updates
+            if t >= 0 and first_cue.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                first_cue.tStart = t
+                first_cue.frameNStart = frameN  # exact frame index
+                first_cue.setAutoDraw(True)
+            frameRemains = 0 + 2- win.monitorFramePeriod * 0.75  # most of one frame period left
+            if first_cue.status == STARTED and t >= frameRemains:
+                first_cue.setAutoDraw(False)        
+            
+            # check if all components have finished
+            if not continueRoutine:  # a component has requested a forced-end of Routine
+                break
+            continueRoutine = False  # will revert to True if at least one component still running
+            for thisComponent in cue1Components:
+                if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                    continueRoutine = True
+                    break  # at least one component has not yet finished
+            
+            # check for quit (the Esc key)
+            if endExpNow or event.getKeys(keyList=["escape"]):
+                core.quit()
+            
+            if debug:
+                show_debugging_stuff()
 
-        # refresh the screen
-        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen            
-            win.flip()
-    
-    # -------Ending Routine "cue1"-------
-    for thisComponent in cue1Components:
-        if hasattr(thisComponent, "setAutoDraw"):
-            thisComponent.setAutoDraw(False)
-    # START END ROUTINE CUE1 SNIPPET
-    
-    writer_object.writerow(["cue1_Off", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
-    
-    # FINISH END ROUTINE CUE1 SNIPPET
-    
-    # ------Prepare to start Routine "ISI1"-------
-    t = 0
-    ISI1Clock.reset()  # clock
-    frameN = -1
-    continueRoutine = True
-    # update component parameters for each repeat
-    ISI_duration = np.random.uniform(2)
-    # keep track of which components have finished
-    ISI1Components = [isi1]
-    for thisComponent in ISI1Components:
-        if hasattr(thisComponent, 'status'):
-            thisComponent.status = NOT_STARTED
-    
-    # -------Start Routine "ISI1"-------
-    while continueRoutine:
-        # get current time
-        t = ISI1Clock.getTime()
-        frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-        # update/draw components on each frame
+            # refresh the screen
+            if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen            
+                win.flip()
         
-        # *isi1* period
-        if t >= 0.0 and isi1.status == NOT_STARTED:
-            # keep track of start time/frame for later
-            isi1.tStart = t
-            isi1.frameNStart = frameN  # exact frame index
-            isi1.start(ISI_duration)
-        elif isi1.status == STARTED:  # one frame should pass before updating params and completing
-            isi1.complete()  # finish the static period
+        # -------Ending Routine "cue1"-------
+        for thisComponent in cue1Components:
+            if hasattr(thisComponent, "setAutoDraw"):
+                thisComponent.setAutoDraw(False)
+
+        # START END ROUTINE CUE1 SNIPPET
         
-        # check if all components have finished
-        if not continueRoutine:  # a component has requested a forced-end of Routine
-            break
-        continueRoutine = False  # will revert to True if at least one component still running
+        writer_object.writerow(["cue1_Off", str(globalClock.getTime()), expInfo['participant'],
+         str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
+          str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+        
+        # FINISH END ROUTINE CUE1 SNIPPET
+        
+        # ------Prepare to start Routine "ISI1"-------
+        t = 0
+        ISI1Clock.reset()  # clock
+        frameN = -1
+        continueRoutine = True
+        # update component parameters for each repeat
+        ISI_duration = np.random.uniform(2)
+        # keep track of which components have finished
+        ISI1Components = [isi1]
         for thisComponent in ISI1Components:
-            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                continueRoutine = True
-                break  # at least one component has not yet finished
+            if hasattr(thisComponent, 'status'):
+                thisComponent.status = NOT_STARTED
         
-        # check for quit (the Esc key)
-        if endExpNow or event.getKeys(keyList=["escape"]):
-            core.quit()
-        
-        if debug:
-            show_debugging_stuff()
+        # -------Start Routine "ISI1"-------
+        while continueRoutine:
+            # get current time
+            t = ISI1Clock.getTime()
+            frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
+            # update/draw components on each frame
+            
+            # *isi1* period
+            if t >= 0.0 and isi1.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                isi1.tStart = t
+                isi1.frameNStart = frameN  # exact frame index
+                isi1.start(ISI_duration)
+            elif isi1.status == STARTED:  # one frame should pass before updating params and completing
+                isi1.complete()  # finish the static period
+            
+            # check if all components have finished
+            if not continueRoutine:  # a component has requested a forced-end of Routine
+                break
+            continueRoutine = False  # will revert to True if at least one component still running
+            for thisComponent in ISI1Components:
+                if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                    continueRoutine = True
+                    break  # at least one component has not yet finished
+            
+            # check for quit (the Esc key)
+            if endExpNow or event.getKeys(keyList=["escape"]):
+                core.quit()
+            
+            if debug:
+                show_debugging_stuff()
 
-        # refresh the screen
-        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-            win.flip()
-    
-    # -------Ending Routine "ISI1"-------
-    for thisComponent in ISI1Components:
-        if hasattr(thisComponent, "setAutoDraw"):
-            thisComponent.setAutoDraw(False)
-    
-    # the Routine "ISI1" was not non-slip safe, so reset the non-slip timer
-    routineTimer.reset()
-    
-    # ------Prepare to start Routine "cue2"-------
-    t = 0
-    cue2Clock.reset()  # clock
-    frameN = -1
-    continueRoutine = True
-    routineTimer.add(1)
-    # update component parameters for each repeat
-    second_cue.setImage(stim2)
-    # START BEGIN ROUTINE CUE2 SNIPPET
-    
-    writer_object.writerow(["cue2_On", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
-    
-    # END BEGIN ROUTINE CUE2 SNIPPET
-    # keep track of which components have finished
-    cue2Components = [second_cue]
-    for thisComponent in cue2Components:
-        if hasattr(thisComponent, 'status'):
-            thisComponent.status = NOT_STARTED
-    
-    # -------Start Routine "cue2"-------
-    while continueRoutine and routineTimer.getTime() > 0:
-        # get current time
-        t = cue2Clock.getTime()
-        frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-        # update/draw components on each frame
+            # refresh the screen
+            if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
+                win.flip()
         
-        # *second_cue* updates
-        if t >= 0 and second_cue.status == NOT_STARTED:
-            # keep track of start time/frame for later
-            second_cue.tStart = t
-            second_cue.frameNStart = frameN  # exact frame index
-            second_cue.setAutoDraw(True)
-        frameRemains = 0 + 2- win.monitorFramePeriod * 0.75  # most of one frame period left
-        if second_cue.status == STARTED and t >= frameRemains:
-            second_cue.setAutoDraw(False)        
+        # -------Ending Routine "ISI1"-------
+        for thisComponent in ISI1Components:
+            if hasattr(thisComponent, "setAutoDraw"):
+                thisComponent.setAutoDraw(False)
         
-        # check if all components have finished
-        if not continueRoutine:  # a component has requested a forced-end of Routine
-            break
-        continueRoutine = False  # will revert to True if at least one component still running
+        # the Routine "ISI1" was not non-slip safe, so reset the non-slip timer
+        routineTimer.reset()
+        
+        # ------Prepare to start Routine "cue2"-------
+        t = 0
+        cue2Clock.reset()  # clock
+        frameN = -1
+        continueRoutine = True
+        routineTimer.add(1)
+        # update component parameters for each repeat
+        second_cue.setImage(stim2)
+        # START BEGIN ROUTINE CUE2 SNIPPET
+        
+        writer_object.writerow(["cue2_On", str(globalClock.getTime()), expInfo['participant'],
+         str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
+          str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+        
+        # END BEGIN ROUTINE CUE2 SNIPPET
+        # keep track of which components have finished
+        cue2Components = [second_cue]
         for thisComponent in cue2Components:
-            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                continueRoutine = True
-                break  # at least one component has not yet finished
+            if hasattr(thisComponent, 'status'):
+                thisComponent.status = NOT_STARTED
         
-        # check for quit (the Esc key)
-        if endExpNow or event.getKeys(keyList=["escape"]):
-            core.quit()
+        # -------Start Routine "cue2"-------
+        while continueRoutine and routineTimer.getTime() > 0:
+            # get current time
+            t = cue2Clock.getTime()
+            frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
+            # update/draw components on each frame
+            
+            # *second_cue* updates
+            if t >= 0 and second_cue.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                second_cue.tStart = t
+                second_cue.frameNStart = frameN  # exact frame index
+                second_cue.setAutoDraw(True)
+            frameRemains = 0 + 2- win.monitorFramePeriod * 0.75  # most of one frame period left
+            if second_cue.status == STARTED and t >= frameRemains:
+                second_cue.setAutoDraw(False)        
+            
+            # check if all components have finished
+            if not continueRoutine:  # a component has requested a forced-end of Routine
+                break
+            continueRoutine = False  # will revert to True if at least one component still running
+            for thisComponent in cue2Components:
+                if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                    continueRoutine = True
+                    break  # at least one component has not yet finished
+            
+            # check for quit (the Esc key)
+            if endExpNow or event.getKeys(keyList=["escape"]):
+                core.quit()
 
-        if debug:
-            show_debugging_stuff()
+            if debug:
+                show_debugging_stuff()
 
-        # refresh the screen
-        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-            win.flip()
-    
-    # -------Ending Routine "cue2"-------
-    for thisComponent in cue2Components:
-        if hasattr(thisComponent, "setAutoDraw"):
-            thisComponent.setAutoDraw(False)
-    # START END ROUTINE CUE2 SNIPPET
-    
-    writer_object.writerow(["cue2_Off", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
-    
-    # FINISH END ROUTINE CUE2 SNIPPET
-    
+            # refresh the screen
+            if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
+                win.flip()
+        
+        # -------Ending Routine "cue2"-------
+        for thisComponent in cue2Components:
+            if hasattr(thisComponent, "setAutoDraw"):
+                thisComponent.setAutoDraw(False)
+        # START END ROUTINE CUE2 SNIPPET
+        
+        writer_object.writerow(["cue2_Off", str(globalClock.getTime()), expInfo['participant'],
+         str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
+          str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+        
+        # FINISH END ROUTINE CUE2 SNIPPET
+
+    elif first_cue_presented == 2:
+                # ------Prepare to start Routine "cue2"-------
+        t = 0
+        cue2Clock.reset()  # clock
+        frameN = -1
+        continueRoutine = True
+        routineTimer.add(1)
+        # update component parameters for each repeat
+        second_cue.setImage(stim2)
+        # START BEGIN ROUTINE CUE2 SNIPPET
+        
+        writer_object.writerow(["cue2_On", str(globalClock.getTime()), expInfo['participant'],
+         str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
+          str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+        
+        # END BEGIN ROUTINE CUE2 SNIPPET
+        # keep track of which components have finished
+        cue2Components = [second_cue]
+        for thisComponent in cue2Components:
+            if hasattr(thisComponent, 'status'):
+                thisComponent.status = NOT_STARTED
+        
+        # -------Start Routine "cue2"-------
+        while continueRoutine and routineTimer.getTime() > 0:
+            # get current time
+            t = cue2Clock.getTime()
+            frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
+            # update/draw components on each frame
+            
+            # *second_cue* updates
+            if t >= 0 and second_cue.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                second_cue.tStart = t
+                second_cue.frameNStart = frameN  # exact frame index
+                second_cue.setAutoDraw(True)
+            frameRemains = 0 + 2- win.monitorFramePeriod * 0.75  # most of one frame period left
+            if second_cue.status == STARTED and t >= frameRemains:
+                second_cue.setAutoDraw(False)        
+            
+            # check if all components have finished
+            if not continueRoutine:  # a component has requested a forced-end of Routine
+                break
+            continueRoutine = False  # will revert to True if at least one component still running
+            for thisComponent in cue2Components:
+                if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                    continueRoutine = True
+                    break  # at least one component has not yet finished
+            
+            # check for quit (the Esc key)
+            if endExpNow or event.getKeys(keyList=["escape"]):
+                core.quit()
+
+            if debug:
+                show_debugging_stuff()
+
+            # refresh the screen
+            if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
+                win.flip()
+        
+        # -------Ending Routine "cue2"-------
+        for thisComponent in cue2Components:
+            if hasattr(thisComponent, "setAutoDraw"):
+                thisComponent.setAutoDraw(False)
+        # START END ROUTINE CUE2 SNIPPET
+        
+        writer_object.writerow(["cue2_Off", str(globalClock.getTime()), expInfo['participant'],
+         str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
+          str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+        
+        # ------Prepare to start Routine "ISI1"-------
+        t = 0
+        ISI1Clock.reset()  # clock
+        frameN = -1
+        continueRoutine = True
+        # update component parameters for each repeat
+        ISI_duration = np.random.uniform(2)
+        # keep track of which components have finished
+        ISI1Components = [isi1]
+        for thisComponent in ISI1Components:
+            if hasattr(thisComponent, 'status'):
+                thisComponent.status = NOT_STARTED
+        
+        # -------Start Routine "ISI1"-------
+        while continueRoutine:
+            # get current time
+            t = ISI1Clock.getTime()
+            frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
+            # update/draw components on each frame
+            
+            # *isi1* period
+            if t >= 0.0 and isi1.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                isi1.tStart = t
+                isi1.frameNStart = frameN  # exact frame index
+                isi1.start(ISI_duration)
+            elif isi1.status == STARTED:  # one frame should pass before updating params and completing
+                isi1.complete()  # finish the static period
+            
+            # check if all components have finished
+            if not continueRoutine:  # a component has requested a forced-end of Routine
+                break
+            continueRoutine = False  # will revert to True if at least one component still running
+            for thisComponent in ISI1Components:
+                if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                    continueRoutine = True
+                    break  # at least one component has not yet finished
+            
+            # check for quit (the Esc key)
+            if endExpNow or event.getKeys(keyList=["escape"]):
+                core.quit()
+            
+            if debug:
+                show_debugging_stuff()
+
+            # refresh the screen
+            if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
+                win.flip()
+        
+        # -------Ending Routine "ISI1"-------
+        for thisComponent in ISI1Components:
+            if hasattr(thisComponent, "setAutoDraw"):
+                thisComponent.setAutoDraw(False)
+        
+        # the Routine "ISI1" was not non-slip safe, so reset the non-slip timer
+        routineTimer.reset()
+        # ------Prepare to start Routine "cue1"-------
+        t = 0
+        cue1Clock.reset()  # clock
+        frameN = -1
+        continueRoutine = True
+        routineTimer.add(1.000000)
+        # update component parameters for each repeat
+        first_cue.setImage(stim1)
+        # START BEGIN ROUTINE CUE1 SNIPPET
+        
+        writer_object.writerow(["cue1_On", str(globalClock.getTime()), expInfo['participant'],
+         str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
+          str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+
+        # END BEGIN ROUTINE CUE1 SNIPPET
+
+        # keep track of which components have finished
+        cue1Components = [first_cue]
+        for thisComponent in cue1Components:
+            if hasattr(thisComponent, 'status'):
+                thisComponent.status = NOT_STARTED
+        
+        # -------Start Routine "cue1"-------
+        while continueRoutine and routineTimer.getTime() > 0:
+            # get current time
+            t = cue1Clock.getTime()
+            frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
+            # update/draw components on each frame
+            
+            # *first_cue* updates
+            if t >= 0 and first_cue.status == NOT_STARTED:
+                # keep track of start time/frame for later
+                first_cue.tStart = t
+                first_cue.frameNStart = frameN  # exact frame index
+                first_cue.setAutoDraw(True)
+            frameRemains = 0 + 2- win.monitorFramePeriod * 0.75  # most of one frame period left
+            if first_cue.status == STARTED and t >= frameRemains:
+                first_cue.setAutoDraw(False)        
+            
+            # check if all components have finished
+            if not continueRoutine:  # a component has requested a forced-end of Routine
+                break
+            continueRoutine = False  # will revert to True if at least one component still running
+            for thisComponent in cue1Components:
+                if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
+                    continueRoutine = True
+                    break  # at least one component has not yet finished
+            
+            # check for quit (the Esc key)
+            if endExpNow or event.getKeys(keyList=["escape"]):
+                core.quit()
+            
+            if debug:
+                show_debugging_stuff()
+
+            # refresh the screen
+            if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen            
+                win.flip()
+        
+        # -------Ending Routine "cue1"-------
+        for thisComponent in cue1Components:
+            if hasattr(thisComponent, "setAutoDraw"):
+                thisComponent.setAutoDraw(False)
+
+        # START END ROUTINE CUE1 SNIPPET
+        
+        writer_object.writerow(["cue1_Off", str(globalClock.getTime()), expInfo['participant'],
+         str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
+          str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+        
+        # FINISH END ROUTINE CUE1 SNIPPET
+
+    # CONTINUE AFTER COUNTERBALANCING PRESENTATION OF CUE1 AND CUE2 
+
     # ------Prepare to start Routine "ISI2"-------
     t = 0
     ISI2Clock.reset()  # clock
@@ -602,7 +826,7 @@ for thisTrial in trials:
     
     # the Routine "ISI2" was not non-slip safe, so reset the non-slip timer
     routineTimer.reset()
-    
+
     # ------Prepare to start Routine "trial"-------
     t = 0
     trialClock.reset()  # clock
@@ -622,16 +846,13 @@ for thisTrial in trials:
     
     arrow_x_pos = -0.5    
     ISI_duration = np.random.uniform(2)    
-    window = 70 # number of frames to check fixation; monitor runs at 75 HZ
-    
-    # create lists to save booleans for side participant's looking
-    gazeOK_left_list = [] # list to save all x positions in the last n frames (n=window)
-    gazeOK_right_list = [] # same for right side
-    gazeOK_center_list = []
+    window = 60 # number of frames to check fixation; monitor runs at 75 HZ
 
     side = None
 
-    writer_object.writerow(["trial_On", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+    writer_object.writerow(["trial_On", str(globalClock.getTime()), expInfo['participant'],
+     str(trials.thisN), expInfo['session'], expInfo['block'], reward,
+      str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
     # Finish Begin Routine snippet    
     
@@ -643,6 +864,13 @@ for thisTrial in trials:
 
     # clear ET events and start recording again for this trial
     io.clearEvents()
+    
+    # create lists to save booleans for side participant's looking
+    # this, apparently, needs to be between io.ClearEvents() and setRecordingState
+    gazeOK_left_list = [] # list to save all x positions in the last n frames (n=window)
+    gazeOK_right_list = [] # same for right side
+    gazeOK_center_list = [] # same for centre
+
     tracker.setRecordingState(True)
     
     # -------Start Routine "trial"-------
@@ -859,10 +1087,13 @@ for thisTrial in trials:
     trials.addData("globalTime", globalClock.getTime())
     
     # save in csv
-    writer_object.writerow(["trial_Off", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+    writer_object.writerow(["trial_Off", str(globalClock.getTime()), expInfo['participant'],
+     str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
+      str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
+    io.clearEvents()
     tracker.setRecordingState(False) # stop recording for this trial
-    #io.clearEvents()
+    
 
     # Finish End Routine snippet
     
@@ -937,7 +1168,9 @@ for thisTrial in trials:
         selection_arrow.setOpacity(0)
     
     selection_arrow.setPos([arrow_x_pos,-0.4])
-    writer_object.writerow(["chosen_On", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), key_resp_2.keys, isReinforced, resp_type, trial_ID])
+    writer_object.writerow(["chosen_On", str(globalClock.getTime()), expInfo['participant'],
+     str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
+      str(prob2), str(mag1), str(mag2), key_resp_2.keys, isReinforced, resp_type, trial_ID])
     
     # Finish Begin Routine snippet
     # keep track of which components have finished
@@ -1005,7 +1238,9 @@ for thisTrial in trials:
     for thisComponent in chosenComponents:
         if hasattr(thisComponent, "setAutoDraw"):
             thisComponent.setAutoDraw(False)
-    writer_object.writerow(["chosen_Off", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+    writer_object.writerow(["chosen_Off", str(globalClock.getTime()), expInfo['participant'],
+     str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
+      str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
     selection_arrow.setOpacity(1)
     
@@ -1098,7 +1333,9 @@ for thisTrial in trials:
         left_feedback.setOpacity(0)
         right_feedback.setOpacity(0)
     
-    writer_object.writerow(["feedback_On", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+    writer_object.writerow(["feedback_On", str(globalClock.getTime()), expInfo['participant'],
+     str(trials.thisN), expInfo['session'], expInfo['block'], reward,
+      str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
     
     # Finish Begin Routine snippet ("feedback" routine)
@@ -1169,7 +1406,9 @@ for thisTrial in trials:
             thisComponent.setAutoDraw(False)
     ##### START END ROUTINE FOR FEEDBACK ROUTINE ####
     
-    writer_object.writerow(["feedback_Off", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+    writer_object.writerow(["feedback_Off", str(globalClock.getTime()), expInfo['participant'],
+     str(trials.thisN), expInfo['session'], expInfo['block'], reward,
+      str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
     # take colour back to stimuli for next trial
     right_feedback.setOpacity(1) 
@@ -1238,7 +1477,9 @@ for thisTrial in trials:
     continueRoutine = True
     routineTimer.add(3.000000)
     # update component parameters for each repeat
-    writer_object.writerow(["rnf_delivery_On", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+    writer_object.writerow(["rnf_delivery_On", str(globalClock.getTime()), expInfo['participant'],
+     str(trials.thisN), expInfo['session'], expInfo['block'], reward,
+      str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
     if isReinforced:
         if reward=="money":
@@ -1303,13 +1544,18 @@ for thisTrial in trials:
             win.flip()
 
     if isReinforced and reward=="juice": # use pumps after reinforcement
-        deliver_juice()
+        if key_resp_2.keys == "right":
+            deliver_juice(mag2) # mag2 is magnitude right in conditions file
+        else: 
+            deliver_juice(mag1) # mag1 is magnitued left
     
     # -------Ending Routine "rnf_delivery"-------
     for thisComponent in rnf_deliveryComponents:
         if hasattr(thisComponent, "setAutoDraw"):
             thisComponent.setAutoDraw(False)
-    writer_object.writerow(["rnf_delivery_Off", str(globalClock.getTime()), expInfo['participant'], str(trials.thisN), expInfo['session'], reward, str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+    writer_object.writerow(["rnf_delivery_Off", str(globalClock.getTime()), expInfo['participant'],
+     str(trials.thisN), expInfo['session'], expInfo['block'], reward,
+      str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
     
     # ------Prepare to start Routine "ISI6"-------
