@@ -19,9 +19,9 @@ _thisDir = os.path.dirname(os.path.abspath(__file__)).decode(sys.getfilesystemen
 os.chdir(_thisDir)
 
 # Store info about the experiment session
-expName = 'two_choice_juice_money'  # from the Builder filename that created this script
-expInfo = {u'participant': u'001', u'session': u'001', u'block': u'1', u'use_pumps': u'y',
- u'use_scanner': u'y', u'use_eye_tracker': u'y', u'reward': u'juice'}
+expName = 'two_choice'  # from the Builder filename that created this script
+expInfo = {u'participant': u'01', u'session': u'1', u'block': u'1', u'use_pumps': u'y',
+ u'use_scanner': u'y', u'use_eye_tracker': u'y', u'reward': u'juice', u'resp_type': u'button'}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
@@ -29,14 +29,14 @@ expInfo['date'] = data.getDateStr()  # add a simple timestamp
 expInfo['expName'] = expName
 
 # Data file name stem = absolute path + name; later add .psyexp, .csv, .log, etc
-filename = _thisDir + os.sep + u'data/%s_%s_%s_session%s' %(expInfo['participant'], expName,
- expInfo['date'], expInfo['session'])
+filename = _thisDir + os.sep + u'data/%s_%s_%s_session%s_block%s' %(expInfo['participant'], expName,
+ expInfo['date'], expInfo['session'], expInfo['block'])
 
 # Create a csv file to save response times etc. Previous one is the native Psychopy file.
-file_name = 'data/S%s_%s_session%s_%s' %(expInfo['participant'], expInfo['date'],
+file_name = 'data/S%s_block%s_session%s_%s' %(expInfo['participant'], expInfo['block'],
  expInfo['session'], expInfo['reward'])
 csv_file = open(file_name+'.csv', 'wb')
-writer_object = csv.writer(csv_file, delimiter=",") 
+writer_object = csv.writer(csv_file, delimiter=",") # create object to write in
 
 writer_object.writerow(['event', 't', 'participant', 'trial', 'session', 'block', 'reward',
  'prob1', 'prob2', 'mag1', 'mag2','resp', 'wasRnf', 'resp_type', 'trial_ID'])
@@ -348,7 +348,7 @@ routineTimer = core.CountdownTimer()  # timer for each routine; resets every tim
 # set up handler to look after randomisation of conditions etc
 trials = data.TrialHandler(nReps=1, method='random', 
     extraInfo=expInfo, originPath=-1,
-    trialList=data.importConditions('conditions_'+expInfo['reward']+'.xlsx', selection='78:84'),
+    trialList=data.importConditions('conditions_'+expInfo['reward']+'.xlsx', selection=u'100:130'),
     seed=None, name='trials')
 thisExp.addLoop(trials)  # add the loop to the experiment
 thisTrial = trials.trialList[0]  # so we can initialise stimuli with some values
@@ -370,6 +370,7 @@ for thisTrial in trials:
     
     first_cue_presented = np.random.randint(1, 3) # sample 1 or 2 (3 excluded in Python)
 
+    # randomise which cue is presented first in the sequential stage
     if first_cue_presented == 1:
 
         # ------Prepare to start Routine "cue1"-------
@@ -393,7 +394,12 @@ for thisTrial in trials:
         for thisComponent in cue1Components:
             if hasattr(thisComponent, 'status'):
                 thisComponent.status = NOT_STARTED
-        
+
+        # io.clearEvents()
+        # tracker.setRecordingState(True)
+
+        # END BEGIN ROUTINE CUE1 SNIPPET
+
         # -------Start Routine "cue1"-------
         while continueRoutine and routineTimer.getTime() > 0:
             # get current time
@@ -441,6 +447,9 @@ for thisTrial in trials:
         writer_object.writerow(["cue1_Off", str(globalClock.getTime()), expInfo['participant'],
          str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
           str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
+
+        # io.clearEvents()
+        # tracker.setRecordingState(False)
         
         # FINISH END ROUTINE CUE1 SNIPPET
         
@@ -450,7 +459,7 @@ for thisTrial in trials:
         frameN = -1
         continueRoutine = True
         # update component parameters for each repeat
-        ISI_duration = np.random.uniform(2)
+        ISI_duration = np.random.uniform(3)
         # keep track of which components have finished
         ISI1Components = [isi1]
         for thisComponent in ISI1Components:
@@ -646,7 +655,7 @@ for thisTrial in trials:
         frameN = -1
         continueRoutine = True
         # update component parameters for each repeat
-        ISI_duration = np.random.uniform(2)
+        ISI_duration = np.random.uniform(3)
         # keep track of which components have finished
         ISI1Components = [isi1]
         for thisComponent in ISI1Components:
@@ -845,8 +854,9 @@ for thisTrial in trials:
     # Start Begin Routine snippet
     
     arrow_x_pos = -0.5    
-    ISI_duration = np.random.uniform(2)    
-    window = 60 # number of frames to check fixation; monitor runs at 75 HZ
+    #ISI_duration = np.random.uniform(2)    
+
+    window = 30 # number of frames to check fixation; monitor runs at 75 HZ
 
     side = None
 
@@ -860,30 +870,25 @@ for thisTrial in trials:
     trialComponents = [resp_image, left_frac, right_frac, key_resp_2, mouse]
     for thisComponent in trialComponents:
         if hasattr(thisComponent, 'status'):
-            thisComponent.status = NOT_STARTED
+            thisComponent.status = NOT_STARTED  
 
     # clear ET events and start recording again for this trial
-    io.clearEvents()
-    
+    if resp_type == "gaze":
+        io.clearEvents()
+        tracker.setRecordingState(True)
+
     # create lists to save booleans for side participant's looking
     # this, apparently, needs to be between io.ClearEvents() and setRecordingState
     gazeOK_left_list = [] # list to save all x positions in the last n frames (n=window)
     gazeOK_right_list = [] # same for right side
     gazeOK_center_list = [] # same for centre
-
-    tracker.setRecordingState(True)
     
     # -------Start Routine "trial"-------
     while continueRoutine and routineTimer.getTime() > 0:
         # get current time
         t = trialClock.getTime()
         frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-        # update/draw components on each frame
-
-        # # clear ET events and start recording again for this trial
-        # io.clearEvents()
-        # tracker.setRecordingState(True)
-        
+      
         # *resp_image* updates
         if t >= 0.0 and resp_image.status == NOT_STARTED:
             # keep track of start time/frame for later
@@ -923,32 +928,24 @@ for thisTrial in trials:
                 mouse.status = STARTED
                 event.mouseButtons = [0, 0, 0]  # reset mouse buttons to be 'up'
             
-            eyeinfo = tracker.getLastSample()
-            valid_gaze_pos = isinstance(eyeinfo, list) 
+            eyeinfo = tracker.getLastSample() # dictionary with all info about gaze
 
-            if frameN > 1 and valid_gaze_pos and eyeinfo[22] != 0: #eyeinfo[22] != 0: # this needs to be done to avoid weird trials
-                # get gaze coordinates on each frame            
-                #gpos = tracker.getLastGazePosition()        
-                # eyeinfo = tracker.getLastSample()
+            eyeinfo1 = tracker.getLastGazePosition() 
+            valid_gaze_pos = isinstance(eyeinfo1, list) 
 
-                # Update stim based on gaze position
-                #valid_gaze_pos = isinstance(gpos, (tuple, list)) # is the participant looking at the screen?
-                # valid_gaze_pos = isinstance(eyeinfo, list) 
-                #gaze_in_region_right = valid_gaze_pos and gaze_ok_right.contains(gpos)
-                #gaze_in_region_left = valid_gaze_pos and gaze_ok_left.contains(gpos)                 
+            if frameN > 1 and valid_gaze_pos: #and eyeinfo[22] != 0: # eyeinfo[22] is pupil size
                 
-                # if eyeinfo[22] != 0: 
                 x_pos = eyeinfo[12] # xpos from the dictionary, the x coordinate
-                y_pos = eyeinfo[13]
+                y_pos = eyeinfo[13] # same for the y_pos
             
                 gaze_dot.setPos([x_pos, y_pos]) # set position for gaze dot
                 gaze_dot.draw()
             
-                if x_pos < -120:# and y_pos < 100 and y_pos > -100:
+                if x_pos <= -100:# and y_pos < 100 and y_pos > -100:
                     side = "left"
-                elif x_pos > 120:# and y_pos < 100 and y_pos > -100:
+                elif x_pos >= 100:# and y_pos < 100 and y_pos > -100:
                     side = "right"
-                else:
+                else: #if x_pos >= -100 and x_pos <= 100:
                     side = "center"
 
                 # Create True/False for regions where participant is looking
@@ -1030,7 +1027,7 @@ for thisTrial in trials:
         
         # Start Each Frame snippet        
       
-        if debug:
+        #if debug:
             show_debugging_stuff()
 
         # Finish Each Frame snippet for "Trial" Routine #
@@ -1047,7 +1044,7 @@ for thisTrial in trials:
 
         if endExpNow or event.getKeys(keyList=["escape"]):
             tracker.setConnectionState(False) # stop recording from eye-tracker
-            io.quit() # stop io connection
+            io.quit()
             core.quit()
         
         # refresh the screen
@@ -1084,6 +1081,7 @@ for thisTrial in trials:
         trials.addData("wasRewarded", isReinforced)
     else: # we did not have a response
         trials.addData("wasRewarded", 0) #never rewarded if did not respond
+    
     trials.addData("globalTime", globalClock.getTime())
     
     # save in csv
@@ -1091,9 +1089,9 @@ for thisTrial in trials:
      str(trials.thisN), expInfo['session'], expInfo['block'], reward, str(prob1),
       str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
     
-    io.clearEvents()
-    tracker.setRecordingState(False) # stop recording for this trial
-    
+    if resp_type == "gaze":
+        io.clearEvents()
+        tracker.setRecordingState(False) # stop recording for this trial    
 
     # Finish End Routine snippet
     
@@ -1250,7 +1248,7 @@ for thisTrial in trials:
     frameN = -1
     continueRoutine = True
     # update component parameters for each repeat
-    ISI_duration = np.random.uniform(2)
+    ISI_duration = np.random.uniform(3)
     # keep track of which components have finished
     ISI4Components = [isi4]
     for thisComponent in ISI4Components:
@@ -1422,7 +1420,7 @@ for thisTrial in trials:
     frameN = -1
     continueRoutine = True
     # update component parameters for each repeat
-    ISI_duration = np.random.uniform(2)
+    ISI_duration = np.random.uniform(3)
     # keep track of which components have finished
     ISI5Components = [isi5]
     for thisComponent in ISI5Components:
@@ -1564,7 +1562,7 @@ for thisTrial in trials:
     frameN = -1
     continueRoutine = True
     # update component parameters for each repeat
-    ISI_duration = np.random.uniform(2)
+    ISI_duration = np.random.uniform(3)
     # keep track of which components have finished
     ISI6Components = [isi6]
     for thisComponent in ISI6Components:
