@@ -348,7 +348,8 @@ routineTimer = core.CountdownTimer()  # timer for each routine; resets every tim
 # set up handler to look after randomisation of conditions etc
 trials = data.TrialHandler(nReps=1, method='random', 
     extraInfo=expInfo, originPath=-1,
-    trialList=data.importConditions('conditions_'+expInfo['reward']+'.xlsx', selection=u'100:130'),
+    trialList=data.importConditions('conditions_'+expInfo['reward']+'_'+ 
+        expInfo['resp_type']+'_'+expInfo['block']+'.xlsx', selection=u'1:5'), 
     seed=None, name='trials')
 thisExp.addLoop(trials)  # add the loop to the experiment
 thisTrial = trials.trialList[0]  # so we can initialise stimuli with some values
@@ -856,7 +857,7 @@ for thisTrial in trials:
     arrow_x_pos = -0.5    
     #ISI_duration = np.random.uniform(2)    
 
-    window = 30 # number of frames to check fixation; monitor runs at 75 HZ
+    window = 60 # number of frames to check fixation; monitor runs at 75 HZ
 
     side = None
 
@@ -949,18 +950,16 @@ for thisTrial in trials:
                     side = "center"
 
                 # Create True/False for regions where participant is looking
-                gaze_in_region_left = side == "left" 
                 gaze_in_region_right = side == "right"
+                gaze_in_region_left = side == "left"
                 gaze_in_region_center = side == "center"
 
                 # If participant looking at the screen, check where they are looking
                 # Check for gaze on right stim 
-                if gaze_in_region_right: # if participant looking at right stim
-                    #gaze_in_region_right = 'Yes'                 
+                if gaze_in_region_right: # if participant looking at right stim           
                     gazeOK_right_list.append(True) # append True to list
                     gaze_ok_region_right.draw()
                 elif not gaze_in_region_right:
-                    #gaze_in_region_right = 'No'
                     gazeOK_right_list.append(False)
                 
                 if len(gazeOK_right_list) == window:
@@ -968,29 +967,23 @@ for thisTrial in trials:
 
                 # Check for gaze on left stim 
                 if gaze_in_region_left: # if participant looking at left stim
-                    #gaze_in_region_left = 'Yes' 
                     gazeOK_left_list.append(True) # append True to list
                     gaze_ok_region_left.draw()
                 elif not gaze_in_region_left:
-                    #gaze_in_region_left = 'No'
                     gazeOK_left_list.append(False)
                 
                 if len(gazeOK_left_list) == window:
                     gazeOK_left_list.pop(0) # delete first element from list; each frame you get one element
 
                 # Check for No response ("center")
-                if gaze_in_region_center: # if participant looking at center stim
-                    #gaze_in_region_center = 'Yes'                 
+                if gaze_in_region_center: # if participant looking at center stim                
                     gazeOK_center_list.append(True) # append True to list
                 elif not gaze_in_region_center:
-                    #gaze_in_region_center = 'No'
                     gazeOK_center_list.append(False)
                 
                 if len(gazeOK_center_list) == window:
                     gazeOK_center_list.pop(0) # delete first element from list; each frame you get one element
                 
-                # if all(gazeOK_center_list):
-
                 if all(gazeOK_right_list):
                     key_resp_2.keys = "right"
                     #continueRoutine = False
