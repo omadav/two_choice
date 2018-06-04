@@ -20,8 +20,8 @@ os.chdir(_thisDir)
 
 # Store info about the experiment session
 expName = 'two_choice'  # from the Builder filename that created this script
-expInfo = {u'participant': u'01', u'session': u'1', u'block': u'1', u'use_pumps': u'y',
- u'use_scanner': u'y', u'use_eye_tracker': u'y', u'reward': u'juice', u'resp_type': u'button'}
+expInfo = {u'participant': u'01', u'session': u'1', u'block': u'1', u'use_pumps': u'n',
+ u'use_scanner': u'y', u'use_eye_tracker': u'y', u'reward': u'money', u'resp_type': u'gaze', u'window':75}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
@@ -166,10 +166,13 @@ gaze_ok_region_right = visual.Rect(
 # Start Begin Experiment snippet 
 
 debug = True # are we showing the debugging stuff on the screen?
-nMissed = 0
+nMissed = 0 # to track how many missed trials and show them on screen
+#gazeOK_center_list , gazeOK_right_list, gazeOK_left_list =  [], [], [] # to debug, comment if not debugging
+#isFixatingLeft = False
+gaze_pos = None
+time_fixating = 0
 
 # Handy functions, including Wolfgang's pumps 
-
 def msg_to_screen(msg,x,y, autodraw=False):
     text_object=visual.TextStim(win, text=msg, pos=(x,y), color=u'red')
     text_object.setAutoDraw(autodraw) # autodraw is false so that the txt doesn't appear constantly
@@ -189,10 +192,18 @@ def show_debugging_stuff():
     #msg_to_screen('prob2: '+ str(prob2), -0.6, -0.8)
     #msg_to_screen('stim1: ' + str(stim1), -0.6, -0.5)
     #msg_to_screen('stim2: '+str(stim2), -0.6, -0.6)
-    msg_to_screen('mag1: '+str(mag1), -0.6, 0.7)
-    msg_to_screen('mag2: '+str(mag2), -0.6, 0.6)
+    #msg_to_screen('mag1: '+str(mag1), -0.6, 0.7)
+    #msg_to_screen('mag2: '+str(mag2), -0.6, 0.6)
     #msg_to_screen('reward: '+str(reward), 0.5, -0.7)
     msg_to_screen('Missed trials: '+str(nMissed), 0.5, 0.9)
+    #msg_to_screen("gazeOK_center_list: %d" %np.sum(gazeOK_center_list), -.55, .8)
+    #msg_to_screen("gazeOK_left_list: %d" %np.sum(gazeOK_left_list), -.55, .7)
+    #msg_to_screen("gazeOK_right_list: %d" %np.sum(gazeOK_right_list), -.55, .6)
+    #msg_to_screen("isFixatingLeft: " + str(isFixatingLeft), -.55, .8)
+    msg_to_screen("t: " + str(t), -.55, .9)
+    msg_to_screen('gaze_pos: ' + str(gaze_pos), -0.4, -0.7)
+    #msg_to_screen('y_pos: ' + str(round(gaze_pos[1],2)), -0.6, -0.8)
+    msg_to_screen('time_fixating: ' + str(round(time_fixating, 2)), -0.6, 0.7)
 
 def wait_for_scanner():
     ''' discard the first three scans '''
@@ -366,7 +377,7 @@ for thisTrial in trials:
     currentLoop = trials
     # abbreviate parameter names if possible (e.g. rgb = thisTrial.rgb)
     if thisTrial != None:
-        for paramName in thisTrial.keys():
+        for paramName in thisTrial.keys(): 
             exec(paramName + '= thisTrial.' + paramName)
     
     first_cue_presented = np.random.randint(1, 3) # sample 1 or 2 (3 excluded in Python)
@@ -857,7 +868,7 @@ for thisTrial in trials:
     arrow_x_pos = -0.5    
     #ISI_duration = np.random.uniform(2)    
 
-    window = 60 # number of frames to check fixation; monitor runs at 75 HZ
+    window = expInfo['window'] # number of frames to check fixation; monitor runs at 75 HZ
 
     side = None
 
@@ -883,6 +894,10 @@ for thisTrial in trials:
     gazeOK_left_list = [] # list to save all x positions in the last n frames (n=window)
     gazeOK_right_list = [] # same for right side
     gazeOK_center_list = [] # same for centre
+
+    fixatingClock = core.Clock()
+    time_fixating = 0
+    isFixating = False
     
     # -------Start Routine "trial"-------
     while continueRoutine and routineTimer.getTime() > 0:
@@ -921,7 +936,9 @@ for thisTrial in trials:
             right_frac.setAutoDraw(False)
         
         if resp_type == "gaze":
-            # *mouse* updates
+            #isfixating = False
+
+            # *mouse* updates, only to trick psychopy 
             if t >= 0.0 and mouse.status == NOT_STARTED:
                 # keep track of start time/frame for later
                 mouse.tStart = t
@@ -934,66 +951,42 @@ for thisTrial in trials:
             eyeinfo1 = tracker.getLastGazePosition() 
             valid_gaze_pos = isinstance(eyeinfo1, list) 
 
-            if frameN > 1 and valid_gaze_pos: #and eyeinfo[22] != 0: # eyeinfo[22] is pupil size
-                
-                x_pos = eyeinfo[12] # xpos from the dictionary, the x coordinate
-                y_pos = eyeinfo[13] # same for the y_pos
-            
-                gaze_dot.setPos([x_pos, y_pos]) # set position for gaze dot
+            gaze_pos = tracker.getPosition()
+
+            if type(gaze_pos) in [list, tuple]: 
+            #if frameN > 1 and valid_gaze_pos: #and eyeinfo[22] != 0: # eyeinfo[22] is pupil size
+
+                x_pos, y_pos = gaze_pos
+                #x_pos, y_pos = eyeinfo[12], eyeinfo[13]
+                #gaze_pos = [x_pos, y_pos] # xpos from the dictionary, the x coordinate
+               
+                gaze_dot.setPos(gaze_pos)#[x_pos, y_pos]) # set position for gaze dot
                 gaze_dot.draw()
-            
-                if x_pos <= -100:# and y_pos < 100 and y_pos > -100:
-                    side = "left"
-                elif x_pos >= 100:# and y_pos < 100 and y_pos > -100:
-                    side = "right"
-                else: #if x_pos >= -100 and x_pos <= 100:
+                time_fixating = 0
+
+                # Check fixation
+                if x_pos <= -100:# and y_pos < 100 and y_pos > -100:left_frac.contains([x_pos, y_pos]):
+                    gaze_ok_region_left.draw() 
+                    #side = "left"
+                    isFixating = True                    
+                    time_fixating = fixatingClock.getTime()
+                    if time_fixating >= 1:
+                        key_resp_2.keys = "left"
+                        continueRoutine = False                                       
+                elif x_pos >= 100:# and y_pos < 100 and y_pos > -100:right_frac.contains([x_pos, y_pos]):# 
+                    gaze_ok_region_right.draw() 
+                    #side = "right"
+                    isFixating = True                    
+                    time_fixating = fixatingClock.getTime()
+                    if time_fixating >= 1:
+                        key_resp_2.keys = "right"
+                        continueRoutine = False                   
+                else: #if x_pos >= -100 and x_pos <= 100:                    
                     side = "center"
-
-                # Create True/False for regions where participant is looking
-                gaze_in_region_right = side == "right"
-                gaze_in_region_left = side == "left"
-                gaze_in_region_center = side == "center"
-
-                # If participant looking at the screen, check where they are looking
-                # Check for gaze on right stim 
-                if gaze_in_region_right: # if participant looking at right stim           
-                    gazeOK_right_list.append(True) # append True to list
-                    gaze_ok_region_right.draw()
-                elif not gaze_in_region_right:
-                    gazeOK_right_list.append(False)
-                
-                if len(gazeOK_right_list) == window:
-                    gazeOK_right_list.pop(0) # delete first element from list; each frame you get one element
-
-                # Check for gaze on left stim 
-                if gaze_in_region_left: # if participant looking at left stim
-                    gazeOK_left_list.append(True) # append True to list
-                    gaze_ok_region_left.draw()
-                elif not gaze_in_region_left:
-                    gazeOK_left_list.append(False)
-                
-                if len(gazeOK_left_list) == window:
-                    gazeOK_left_list.pop(0) # delete first element from list; each frame you get one element
-
-                # Check for No response ("center")
-                if gaze_in_region_center: # if participant looking at center stim                
-                    gazeOK_center_list.append(True) # append True to list
-                elif not gaze_in_region_center:
-                    gazeOK_center_list.append(False)
-                
-                if len(gazeOK_center_list) == window:
-                    gazeOK_center_list.pop(0) # delete first element from list; each frame you get one element
-                
-                if all(gazeOK_right_list):
-                    key_resp_2.keys = "right"
-                    #continueRoutine = False
-                elif all(gazeOK_left_list):
-                    key_resp_2.keys = "left"
-                    #continueRoutine = False 
-                elif all(gazeOK_center_list):
-                    key_resp_2.keys = None # None is assigned as string "none" below
-                    #continueRoutine = False
-
+                    isFixating = False
+                    time_fixating = 0
+                    fixatingClock.reset()
+               
         elif resp_type == "button":
             # *key_resp_2* updates
             if t >= 0.0 and key_resp_2.status == NOT_STARTED:
@@ -1009,9 +1002,9 @@ for thisTrial in trials:
                 key_resp_2.status = STOPPED
             if key_resp_2.status == STARTED:
                 theseKeys = event.getKeys(keyList=['left', 'right'])
-                        # check for quit:
+                # check for quit:
                 if "escape" in theseKeys:
-                    endExpNow = True
+                    endExpNow = True                
                 if len(theseKeys) > 0:  # at least one key was pressed
                     key_resp_2.keys = theseKeys[-1]  # just the last key pressed
                     key_resp_2.rt = key_resp_2.clock.getTime()
@@ -1020,7 +1013,7 @@ for thisTrial in trials:
         
         # Start Each Frame snippet        
       
-        #if debug:
+        if debug:
             show_debugging_stuff()
 
         # Finish Each Frame snippet for "Trial" Routine #
@@ -1086,63 +1079,8 @@ for thisTrial in trials:
         io.clearEvents()
         tracker.setRecordingState(False) # stop recording for this trial    
 
-    # Finish End Routine snippet
-    
-    # ------Prepare to start Routine "ISI3"-------
-    t = 0
-    ISI3Clock.reset()  # clock
-    frameN = -1
-    continueRoutine = True
-    # update component parameters for each repeat
-    ISI_duration = 0
-    # keep track of which components have finished
-    ISI3Components = [isi3]
-    for thisComponent in ISI3Components:
-        if hasattr(thisComponent, 'status'):
-            thisComponent.status = NOT_STARTED
-    
-    # -------Start Routine "ISI3"-------
-    while continueRoutine:
-        # get current time
-        t = ISI3Clock.getTime()
-        frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
-        # update/draw components on each frame
-        
-        # *isi3* period
-        if t >= 0.0 and isi3.status == NOT_STARTED:
-            # keep track of start time/frame for later
-            isi3.tStart = t
-            isi3.frameNStart = frameN  # exact frame index
-            isi3.start(ISI_duration)
-        elif isi3.status == STARTED:  # one frame should pass before updating params and completing
-            isi3.complete()  # finish the static period
-        
-        # check if all components have finished
-        if not continueRoutine:  # a component has requested a forced-end of Routine
-            break
-        continueRoutine = False  # will revert to True if at least one component still running
-        for thisComponent in ISI3Components:
-            if hasattr(thisComponent, "status") and thisComponent.status != FINISHED:
-                continueRoutine = True
-                break  # at least one component has not yet finished
-        
-        # check for quit (the Esc key)
-        if endExpNow or event.getKeys(keyList=["escape"]):
-            io.quit() # if quit, stop 
-            core.quit()
-        
-        # refresh the screen
-        if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
-            win.flip()
-    
-    # -------Ending Routine "ISI3"-------
-    for thisComponent in ISI3Components:
-        if hasattr(thisComponent, "setAutoDraw"):
-            thisComponent.setAutoDraw(False)
-    
-    # the Routine "ISI3" was not non-slip safe, so reset the non-slip timer
-    routineTimer.reset()
-    
+    # Finish End Routine snippet    
+   
     # ------Prepare to start Routine "chosen"-------
     t = 0
     chosenClock.reset()  # clock
