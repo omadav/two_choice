@@ -60,7 +60,7 @@ iohub_tracker_class_path = 'eyetracker.hw.sr_research.eyelink.EyeTracker'
 eyetracker_config = dict()
 eyetracker_config['name'] = 'tracker'
 eyetracker_config['model_name'] = 'EYELINK 1000 DESKTOP'
-eyetracker_config['simulation_mode'] = False
+eyetracker_config['simulation_mode'] = True
 eyetracker_config['runtime_settings'] = dict(sampling_rate=1000, track_eyes='RIGHT')
 
 io = launchHubServer(**{iohub_tracker_class_path: eyetracker_config})
@@ -397,7 +397,7 @@ response_type_list = np.random.permutation([u'button', u'gaze']).tolist()
 
 trials = data.TrialHandler(nReps=1, method='random', 
     extraInfo=expInfo, originPath=-1,
-    trialList=data.importConditions('conditions_v2.xlsx', selection=u'0:3'), 
+    trialList=data.importConditions('conditions_v2.xlsx', selection=u'0:5'), 
     seed=None, name='trials')		
 
 thisExp.addLoop(trials)  # add the loop to the experiment
