@@ -20,8 +20,8 @@ os.chdir(_thisDir)
 
 # Store info about the experiment session
 expName = 'two_choice'  # from the Builder filename that created this script
-expInfo = {u'participant': u'01', u'session': u'1', u'run': u'1', u'use_pumps': u'n',
- u'use_scanner': u'y', u'use_eye_tracker': u'n', u'reward': u'money', u'resp_type': u'button', u'window':75}
+expInfo = {u'participant': u'01', u'session': u'1', u'run': u'1', u'use_pumps': u'y',
+ u'use_scanner': u'y', u'use_eye_tracker': u'y', u'reward': u'money', u'window':75}
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
 if dlg.OK == False:
     core.quit()  # user pressed cancel
@@ -75,7 +75,7 @@ r = tracker.runSetupProcedure()
 
 # Create the window
 win = visual.Window(
-    display.getPixelResolution(), fullscr=True, screen=0,
+    display.getPixelResolution(), fullscr=False, screen=0,
     allowGUI=False, allowStencil=False,
     monitor='testMonitor', color=[0.506,0.506,0.506], colorSpace='rgb',
     blendMode='avg', useFBO=False) # FBO must be False for many screens for it to work
@@ -216,7 +216,7 @@ right_feedback = visual.ImageStim(
     flipHoriz=False, flipVert=False,
     texRes=128, interpolate=True, depth=-1.0)
 outcome_text = visual.TextStim(win=win, name='outcome_text',
-    text='Trial missed!',
+    text=' ',
     font='Arial',
     pos=[0, 0], height=0.15, wrapWidth=None, ori=0, 
     color='Black', colorSpace='rgb', opacity=1,
@@ -228,12 +228,13 @@ isi5 = core.StaticPeriod(win=win, screenHz=expInfo['frameRate'], name='isi5')
 
 # Initialize components for Routine "rnf_delivery"
 rnf_deliveryClock = core.Clock()
-rnf_delivery_txt = visual.TextStim(win=win, name='rnf_delivery_txt',
-    text='Any text\n\nincluding line breaks',
-    font='Arial',
-    pos=(0, 0), height=0.15, wrapWidth=None, ori=0, 
-    color='Red', colorSpace='rgb', opacity=1,
-    depth=0.0);
+rnf_delivery_img = visual.ImageStim(
+    win=win, name='rnf_delivery_img',
+    image='none', mask=None,
+    ori=0, pos=(0, 0), size=(0.8, 0.5),
+    color=[1,1,1], colorSpace='rgb', opacity=1,
+    flipHoriz=False, flipVert=False,
+    texRes=128, interpolate=True, depth=0.0)
 
 # Initialize components for Routine "ISI6"
 ISI6Clock = core.Clock()
@@ -246,7 +247,7 @@ ISI_endExp = core.StaticPeriod(win=win, screenHz=expInfo['frameRate'], name='ISI
 #### START BEGIN EXPERIMENT SNIPPET ####
 colors = []
 t = 0.00
-currentRun = 1
+# currentRun = 1
 
 # Fixation cross as a text stim with text equal to +
 fix_cross = visual.TextStim(win=win, ori=0,	name='fixation',
@@ -266,8 +267,8 @@ run_txt = visual.TextBox(window=win, text='run name: ' + expInfo['run'], font_si
                          font_color=[-1, -1, 1], size=(1.9, .3), pos=(-0.8, 0.5), 
                          grid_horz_justification='center', units='norm')
 
-currentRun_txt = visual.TextBox(window=win, text='text', font_size=20,
-                         font_color=[-1, -1, 1], size=(1.9, .3), pos=(-0.8, 0.4), 
+rnf_delivery_img_txt = visual.TextBox(window=win, text='text', font_size=20,
+                         font_color=[-1, -1, 1], size=(1.9, .3), pos=(-0.6, 0.4), 
                          grid_horz_justification='center', units='norm')
 
 time_fixating_txt = visual.TextStim(win=win, ori=0, name='fixation', 
@@ -275,11 +276,26 @@ time_fixating_txt = visual.TextStim(win=win, ori=0, name='fixation',
 						pos=[0.0, -0.2], height=0.3, wrapWidth=None, color='white', 
 						colorSpace='rgb', opacity=1, depth=0.0)
 
+mag_txt =  visual.TextBox(window=win, text='text', font_size=20,
+                         font_color=[-1, -1, 1], size=(1.9, .3), pos=(-0.8, 0.7), 
+                         grid_horz_justification='center', units='norm')
+
+reward_txt =  visual.TextBox(window=win, text='text', font_size=20,
+                         font_color=[-1, -1, 1], size=(1.9, .3), pos=(-0.8, 0.3), 
+                         grid_horz_justification='center', units='norm')
+isReinforced_txt =  visual.TextBox(window=win, text='text', font_size=20,
+                         font_color=[-1, -1, 1], size=(1.9, .3), pos=(-0.8, 0.2), 
+                         grid_horz_justification='center', units='norm')
+response_txt =  visual.TextBox(window=win, text='text', font_size=20,
+                         font_color=[-1, -1, 1], size=(1.9, .3), pos=(-0.8, 0.1), 
+                         grid_horz_justification='center', units='norm')
+
 debug = True # are we showing the debugging stuff on the screen?
 nMissed = 0 # to track how many missed trials and show them on screen
 #gazeOK_center_list , gazeOK_right_list, gazeOK_left_list =  [], [], [] # to debug, comment if not debugging
 #isFixatingLeft = False
 gaze_pos = None
+isReinforced = 0
 
 # Handy functions, including Wolfgang's pumps 
 def msg_to_screen(text_stim, autodraw=False):
@@ -291,18 +307,25 @@ def show_debugging_stuff():
 	''' set text for stims to show every frame '''
 	t_txt.setText('t:  %s' %str(round(t, 2)))	            
 	run_txt.setText('run_name:  ' + expInfo['run'])
-	currentRun_txt.setText('current run:  %s' %str(currentRun))
+	rnf_delivery_img_txt.setText('rnf_delivery_img:  %s' %str(rnf_delivery_img.image))
+	mag_txt.setText('mag1:%d mag2:%d' %(mag1, mag2))
+	reward_txt.setText('reward: %s' %str(reward))
+	isReinforced_txt.setText('isReinforced: %s' %str(isReinforced))
+
 	#cond_file_txt.setText('conditions_'+expInfo['reward']+'_'+expInfo['resp_type']+'_'+expInfo['run']+'.xlsx')
 
     # show text stims on every frame
 	t_txt.draw()
 	run_txt.draw()
-	currentRun_txt.draw()
+	rnf_delivery_img_txt.draw()
+	mag_txt.draw()
+	reward_txt.draw()
+	isReinforced_txt.draw()
 	#cond_file_txt.draw()
 
 def wait_for_scanner():
     ''' discard the first scans '''
-    n_discard = 3
+    n_discard = 1
     wait_txt = visual.TextStim(win, 'Waiting for Scanner ...', color="black")
     wait_txt.setAutoDraw(True)
     win.flip()
@@ -362,7 +385,8 @@ def configure_pumps(volume=.75, diameter=26.77, rate=60, direction='INF', addres
 def deliver_juice(mag):
     for squirt in range(mag):
         p.run(address)
-        time.sleep(.5) # try to see whether core.wait() would work better
+        core.wait(.5)
+        #time.sleep(.5) # try to see whether core.wait() would work better
 
 # configure pumps
 if expInfo['use_pumps'] == 'y':  
@@ -395,10 +419,15 @@ response_type_list = np.random.permutation([u'button', u'gaze']).tolist()
 
 # set up handler to look after randomisation of conditions etc
 
+# trials = data.TrialHandler(nReps=1, method='random', 
+#     extraInfo=expInfo, originPath=-1,
+#     trialList=data.importConditions('conditions_v2.xlsx', selection=u'0:5'), 
+#     seed=None, name='trials')
+
 trials = data.TrialHandler(nReps=1, method='random', 
     extraInfo=expInfo, originPath=-1,
-    trialList=data.importConditions('conditions_v2.xlsx', selection=u'0:5'), 
-    seed=None, name='trials')		
+    trialList=data.importConditions('conditions_'+expInfo['reward']+'.xlsx', selection=u'0:50'), 
+    seed=None, name='trials')	
 
 thisExp.addLoop(trials)  # add the loop to the experiment
 thisTrial = trials.trialList[0]  # so we can initialise stimuli with some values
@@ -411,7 +440,7 @@ t = 0
 blank_screen1Clock.reset()  # clock
 frameN = -1
 continueRoutine = True
-routineTimer.add(5.000000)
+routineTimer.add(0.000000)
 # update component parameters for each repeat
 # keep track of which components have finished
 blank_screen1Components = [ISI0]
@@ -479,7 +508,7 @@ for thisTrial in trials:
         cue1Clock.reset()  # clock
         frameN = -1
         continueRoutine = True
-        routineTimer.add(1.000000)
+        routineTimer.add(0.000000)
         # update component parameters for each repeat
         first_cue.setFillColor(color_left)
         first_cue.edges = n_edges_left
@@ -619,7 +648,7 @@ for thisTrial in trials:
         cue2Clock.reset()  # clock
         frameN = -1
         continueRoutine = True
-        routineTimer.add(1)
+        routineTimer.add(0)
         # update component parameters for each repeat
         second_cue.setFillColor(color_right)
         second_cue.edges = n_edges_right
@@ -695,7 +724,7 @@ for thisTrial in trials:
         cue2Clock.reset()  # clock
         frameN = -1
         continueRoutine = True
-        routineTimer.add(1)
+        routineTimer.add(0)
         # update component parameters for each repeat
         second_cue.setFillColor(color_right)
         second_cue.edges = n_edges_right
@@ -823,7 +852,7 @@ for thisTrial in trials:
         cue1Clock.reset()  # clock
         frameN = -1
         continueRoutine = True
-        routineTimer.add(1.000000)
+        routineTimer.add(0)
         # update component parameters for each repeat
         first_cue.setFillColor(color_left)
         first_cue.edges = n_edges_left
@@ -1364,7 +1393,7 @@ for thisTrial in trials:
     
     # Start Begin Routine ("feedback" routine) snippet
     
-    if key_resp_2.keys == '4':
+    if key_resp_2.keys == '4': # response left
         right_feedback.setOpacity(0)
         
         if isReinforced:      
@@ -1374,7 +1403,7 @@ for thisTrial in trials:
             outcome_text.setText('')
             left_feedback.setImage('stim/noReward.png') 
     
-    elif key_resp_2.keys == '9':
+    elif key_resp_2.keys == '9': # response right
         left_feedback.setOpacity(0) 
         
         if isReinforced:    
@@ -1385,7 +1414,7 @@ for thisTrial in trials:
             right_feedback.setImage('stim/noReward.png')
     
     elif key_resp_2.keys == 'none':
-        outcome_text.setText('Trial missed!')
+        outcome_text.setText('')
         left_feedback.setOpacity(0)
         right_feedback.setOpacity(0)
     
@@ -1466,7 +1495,8 @@ for thisTrial in trials:
     for thisComponent in feedbackComponents:
         if hasattr(thisComponent, "setAutoDraw"):
             thisComponent.setAutoDraw(False)
-    ##### START END ROUTINE FOR FEEDBACK ROUTINE ####
+
+    ##### START END ROUTINE SNIPPET FOR FEEDBACK ROUTINE ####
     
     writer_object.writerow(["feedback_Off", str(globalClock.getTime()), expInfo['participant'],
      str(trials.thisN), expInfo['session'], expInfo['run'], reward,
@@ -1544,38 +1574,70 @@ for thisTrial in trials:
     rnf_deliveryClock.reset()  # clock
     frameN = -1
     continueRoutine = True
-    routineTimer.add(3.000000)
+    routineTimer.add(1.000000)
     # update component parameters for each repeat
     writer_object.writerow(["rnf_delivery_On", str(globalClock.getTime()), expInfo['participant'],
      str(trials.thisN), expInfo['session'], expInfo['run'], reward,
       str(prob1), str(prob2), str(mag1), str(mag2), '', '', '', trial_ID])
-    
-    if isReinforced:
-        if reward=="money":
-            if key_resp_2.keys == "left":
-                rnf_delivery_txt.setText("You have won \n" + "%d token(s)!" %mag1)
-                rnf_delivery_txt.setColor("Black", colorSpace="rgb")
-            elif key_resp_2.keys == "right":
-                rnf_delivery_txt.setText("You have won \n" + "%d token(s)!" %mag2)
-                rnf_delivery_txt.setColor("Black", colorSpace="rgb")
-        elif reward=="juice":
-            if key_resp_2.keys == "left":
-                rnf_delivery_txt.setText("You have won \n" + "%d squirt(s) of juice!" %mag1)
-                rnf_delivery_txt.setColor("Black", colorSpace="rgb")
-                
-            elif key_resp_2.keys == "right":
-                rnf_delivery_txt.setText("You have won \n" + "%d squirt(s) of juice!" %mag2)
-                rnf_delivery_txt.setColor("Black", colorSpace="rgb")
-                
-    elif not isReinforced:
-        rnf_delivery_txt.setText("Nothing won")
-        rnf_delivery_txt.setColor("Black", colorSpace="rgb")
-    
+
     # keep track of which components have finished
-    rnf_deliveryComponents = [rnf_delivery_txt]
+    rnf_deliveryComponents = [rnf_delivery_img]
     for thisComponent in rnf_deliveryComponents:
         if hasattr(thisComponent, 'status'):
             thisComponent.status = NOT_STARTED
+    
+	if isReinforced:
+		
+		print key_resp_2.keys
+		if expInfo['reward'] == "money":    
+			if key_resp_2.keys == "4":
+				if mag1 == 1:
+					rnf_delivery_img.setImage('stim/reward_low_money.png')
+					rnf_delivery_img.setPos([0.2, 0])
+				elif mag1 == 2:
+					rnf_delivery_img.setImage('stim/reward_med_money.png')
+					rnf_delivery_img.setPos([0.1, 0])
+				elif mag == 3: 
+					rnf_delivery_img.setImage('stim/reward_high_money.png')
+					rnf_delivery_img.setPos([0, 0])
+			elif key_resp_2.keys == "9":
+				if mag2 == 1:
+					rnf_delivery_img.setImage('stim/reward_low_money.png')
+					rnf_delivery_img.setPos([0.2, 0])
+				elif mag2 == 2:
+					rnf_delivery_img.setImage('stim/reward_med_money.png')
+					rnf_delivery_img.setPos([0.1, 0])
+				else: 
+					rnf_delivery_img.setImage('stim/reward_high_money.png') 
+					rnf_delivery_img.setPos([0, 0])
+		if expInfo['reward'] == "juice":   
+			rnf_delivery_img.setSize(0.4) 
+			if key_resp_2.keys == "4":
+				if mag1 == 1:
+					rnf_delivery_img.setImage('stim/reward_low_juice.png')
+					rnf_delivery_img.setPos([0., 0])
+				elif mag1 == 2:
+					rnf_delivery_img.setImage('stim/reward_med_juice.png')
+					rnf_delivery_img.setPos([0., 0])
+				elif mag == 3: 
+					rnf_delivery_img.setImage('stim/reward_high_juice.png')
+					rnf_delivery_img.setPos([0, 0])
+			elif key_resp_2.keys == "9":
+				if mag2 == 1:
+					rnf_delivery_img.setImage('stim/reward_low_juice.png')
+					rnf_delivery_img.setPos([0, 0])
+				elif mag2 == 2:
+					rnf_delivery_img.setImage('stim/reward_med_juice.png')
+					rnf_delivery_img.setPos([0, 0])
+				else: 
+					rnf_delivery_img.setImage('stim/reward_high_juice.png') 
+					rnf_delivery_img.setPos([0, 0])		
+              
+	elif not isReinforced:
+		# if reward == "money":
+		rnf_delivery_img.setImage('stim/arrow1.png')
+		rnf_delivery_img.setPos([0, 0])
+		rnf_delivery_img.setOpacity(0)
     
     # -------Start Routine "rnf_delivery"-------
     while continueRoutine and routineTimer.getTime() > 0:
@@ -1584,15 +1646,15 @@ for thisTrial in trials:
         frameN = frameN + 1  # number of completed frames (so 0 is the first frame)
         # update/draw components on each frame
         
-        # *rnf_delivery_txt* updates
-        if t >= 0.0 and rnf_delivery_txt.status == NOT_STARTED:
+        # *rnf_delivery_img* updates
+        if t >= 0.0 and rnf_delivery_img.status == NOT_STARTED:
             # keep track of start time/frame for later
-            rnf_delivery_txt.tStart = t
-            rnf_delivery_txt.frameNStart = frameN  # exact frame index
-            rnf_delivery_txt.setAutoDraw(True)
-        frameRemains = 0.0 + 2- win.monitorFramePeriod * 0.75  # most of one frame period left
-        if rnf_delivery_txt.status == STARTED and t >= frameRemains:
-            rnf_delivery_txt.setAutoDraw(False)
+            rnf_delivery_img.tStart = t
+            rnf_delivery_img.frameNStart = frameN  # exact frame index
+            rnf_delivery_img.setAutoDraw(True)
+        frameRemains = 0.0 + 2- win.monitorFramePeriod * 0.75  # most of one frame period 4
+        if rnf_delivery_img.status == STARTED and t >= frameRemains:
+            rnf_delivery_img.setAutoDraw(False)
 
         ##### Start Each Frame snippet #####
              
@@ -1618,10 +1680,10 @@ for thisTrial in trials:
         if continueRoutine:  # don't flip if this routine is over or we'll get a blank screen
             win.flip()
 
-    if isReinforced and reward=="juice": # use pumps after reinforcement
-        if key_resp_2.keys == "right":
+    if isReinforced and reward == "juice": # use pumps after reinforcement
+        if key_resp_2.keys == "9":
             deliver_juice(mag2) # mag2 is magnitude right in conditions file
-        else: 
+        elif key_resp_2.keys == "4": 
             deliver_juice(mag1) # mag1 is magnitued left
     
     # -------Ending Routine "rnf_delivery"-------
@@ -1707,11 +1769,11 @@ trials.saveAsExcel(filename + '.xlsx', sheetName='trials',
     stimOut=params,
     dataOut=['n','all_mean','all_std', 'all_raw'])
 
-currentRun += 1
+# currentRun += 1
 
-# show screen to wait for next run
-if currentRun in [1,2,3]: # if not the last run, show the screen
-	wait_for_next_run()
+# # show screen to wait for next run
+# if currentRun in [1,2,3]: # if not the last run, show the screen
+# 	wait_for_next_run()
 
 # Experiment finished, now show last blank screen
 
