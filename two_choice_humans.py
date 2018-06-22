@@ -250,10 +250,10 @@ t = 0.00
 # currentRun = 1
 
 # Fixation cross as a text stim with text equal to +
-fix_cross = visual.TextStim(win=win, ori=0,	name='fixation',
-						  	text='+', font='Arial',	pos=[0, 0], 
-						  	height=0.3, wrapWidth=None, color='white', 
-						  	colorSpace='rgb', opacity=1, depth=0.0)
+fix_cross = visual.TextStim(win=win, ori=0, name='fixation',
+                            text='+', font='Arial', pos=[0, 0], 
+                            height=0.3, wrapWidth=None, color='white', 
+                            colorSpace='rgb', opacity=1, depth=0.0)
 
 # the following are TEXTBOX objects for debugging purposes. 
 # Otherwise there are memory leaks if you update textstim
@@ -272,9 +272,9 @@ rnf_delivery_img_txt = visual.TextBox(window=win, text='text', font_size=20,
                          grid_horz_justification='center', units='norm')
 
 time_fixating_txt = visual.TextStim(win=win, ori=0, name='fixation', 
-						text='time_fixating: ' + str(round(0.00, 2)), font='Arial',
-						pos=[0.0, -0.2], height=0.3, wrapWidth=None, color='white', 
-						colorSpace='rgb', opacity=1, depth=0.0)
+                        text='time_fixating: ' + str(round(0.00, 2)), font='Arial',
+                        pos=[0.0, -0.2], height=0.3, wrapWidth=None, color='white', 
+                        colorSpace='rgb', opacity=1, depth=0.0)
 
 mag_txt =  visual.TextBox(window=win, text='text', font_size=20,
                          font_color=[-1, -1, 1], size=(1.9, .3), pos=(-0.8, 0.7), 
@@ -299,29 +299,29 @@ isReinforced = 0
 
 # Handy functions, including Wolfgang's pumps 
 def msg_to_screen(text_stim, autodraw=False):
-	#text_object=visual.TextStim(win, text=msg, pos=(x,y), color=u'white')
+    #text_object=visual.TextStim(win, text=msg, pos=(x,y), color=u'white')
     text_stim.setAutoDraw(autodraw) # autodraw is false so that the txt doesn't appear constantly
     text_stim.draw()
 
 def show_debugging_stuff():
-	''' set text for stims to show every frame '''
-	t_txt.setText('t:  %s' %str(round(t, 2)))	            
-	run_txt.setText('run_name:  ' + expInfo['run'])
-	rnf_delivery_img_txt.setText('rnf_delivery_img:  %s' %str(rnf_delivery_img.image))
-	mag_txt.setText('mag1:%d mag2:%d' %(mag1, mag2))
-	reward_txt.setText('reward: %s' %str(reward))
-	isReinforced_txt.setText('isReinforced: %s' %str(isReinforced))
+    ''' set text for stims to show every frame '''
+    t_txt.setText('t:  %s' %str(round(t, 2)))               
+    run_txt.setText('run_name:  ' + expInfo['run'])
+    rnf_delivery_img_txt.setText('rnf_delivery_img:  %s' %str(rnf_delivery_img.image))
+    mag_txt.setText('mag1:%d mag2:%d' %(mag1, mag2))
+    reward_txt.setText('reward: %s' %str(reward))
+    isReinforced_txt.setText('isReinforced: %s' %str(isReinforced))
 
-	#cond_file_txt.setText('conditions_'+expInfo['reward']+'_'+expInfo['resp_type']+'_'+expInfo['run']+'.xlsx')
+    #cond_file_txt.setText('conditions_'+expInfo['reward']+'_'+expInfo['resp_type']+'_'+expInfo['run']+'.xlsx')
 
     # show text stims on every frame
-	t_txt.draw()
-	run_txt.draw()
-	rnf_delivery_img_txt.draw()
-	mag_txt.draw()
-	reward_txt.draw()
-	isReinforced_txt.draw()
-	#cond_file_txt.draw()
+    t_txt.draw()
+    run_txt.draw()
+    rnf_delivery_img_txt.draw()
+    mag_txt.draw()
+    reward_txt.draw()
+    isReinforced_txt.draw()
+    #cond_file_txt.draw()
 
 def wait_for_scanner():
     ''' discard the first scans '''
@@ -330,11 +330,11 @@ def wait_for_scanner():
     wait_txt.setAutoDraw(True)
     win.flip()
     for k in xrange(n_discard):
-    	keys = event.waitKeys(keyList='5')
-    	if k == 0:
-    		clock = core.Clock() # set clock 0 to time of first scan
-    	wait_txt.setText(str(n_discard - k - 1))
-    	win.flip()
+        keys = event.waitKeys(keyList='5')
+        if k == 0:
+            clock = core.Clock() # set clock 0 to time of first scan
+        wait_txt.setText(str(n_discard - k - 1))
+        win.flip()
     wait_txt.setAutoDraw(False)
     win.flip()
     return clock
@@ -369,7 +369,7 @@ def configure_pumps(volume=.75, diameter=26.77, rate=60, direction='INF', addres
         if len(p) > 1:
             print "Found more than one pump!...that's weird"
         else:
-        	print "Found only one pump... that's good enough"
+            print "Found only one pump... that's good enough"
 
         dev_address = p[0][1]
 
@@ -427,7 +427,7 @@ response_type_list = np.random.permutation([u'button', u'gaze']).tolist()
 trials = data.TrialHandler(nReps=1, method='random', 
     extraInfo=expInfo, originPath=-1,
     trialList=data.importConditions('conditions_'+expInfo['reward']+'.xlsx', selection=u'0:50'), 
-    seed=None, name='trials')	
+    seed=None, name='trials')   
 
 thisExp.addLoop(trials)  # add the loop to the experiment
 thisTrial = trials.trialList[0]  # so we can initialise stimuli with some values
@@ -1586,58 +1586,52 @@ for thisTrial in trials:
         if hasattr(thisComponent, 'status'):
             thisComponent.status = NOT_STARTED
     
-	if isReinforced:
-		
-		print key_resp_2.keys
-		if expInfo['reward'] == "money":    
-			if key_resp_2.keys == "4":
-				if mag1 == 1:
-					rnf_delivery_img.setImage('stim/reward_low_money.png')
-					rnf_delivery_img.setPos([0.2, 0])
-				elif mag1 == 2:
-					rnf_delivery_img.setImage('stim/reward_med_money.png')
-					rnf_delivery_img.setPos([0.1, 0])
-				elif mag == 3: 
-					rnf_delivery_img.setImage('stim/reward_high_money.png')
-					rnf_delivery_img.setPos([0, 0])
-			elif key_resp_2.keys == "9":
-				if mag2 == 1:
-					rnf_delivery_img.setImage('stim/reward_low_money.png')
-					rnf_delivery_img.setPos([0.2, 0])
-				elif mag2 == 2:
-					rnf_delivery_img.setImage('stim/reward_med_money.png')
-					rnf_delivery_img.setPos([0.1, 0])
-				else: 
-					rnf_delivery_img.setImage('stim/reward_high_money.png') 
-					rnf_delivery_img.setPos([0, 0])
-		if expInfo['reward'] == "juice":   
-			rnf_delivery_img.setSize(0.4) 
-			if key_resp_2.keys == "4":
-				if mag1 == 1:
-					rnf_delivery_img.setImage('stim/reward_low_juice.png')
-					rnf_delivery_img.setPos([0., 0])
-				elif mag1 == 2:
-					rnf_delivery_img.setImage('stim/reward_med_juice.png')
-					rnf_delivery_img.setPos([0., 0])
-				elif mag == 3: 
-					rnf_delivery_img.setImage('stim/reward_high_juice.png')
-					rnf_delivery_img.setPos([0, 0])
-			elif key_resp_2.keys == "9":
-				if mag2 == 1:
-					rnf_delivery_img.setImage('stim/reward_low_juice.png')
-					rnf_delivery_img.setPos([0, 0])
-				elif mag2 == 2:
-					rnf_delivery_img.setImage('stim/reward_med_juice.png')
-					rnf_delivery_img.setPos([0, 0])
-				else: 
-					rnf_delivery_img.setImage('stim/reward_high_juice.png') 
-					rnf_delivery_img.setPos([0, 0])		
-              
-	elif not isReinforced:
-		# if reward == "money":
-		rnf_delivery_img.setImage('stim/arrow1.png')
-		rnf_delivery_img.setPos([0, 0])
-		rnf_delivery_img.setOpacity(0)
+    rnf_delivery_img.setOpacity(1) # show stimuli again
+
+    if isReinforced:
+        #rnf_delivery_img.setOpacity(1)
+        if expInfo['reward'] == "money":    
+            if key_resp_2.keys == "4":
+                if mag1 == 1:
+                    rnf_delivery_img.setImage('stim/reward_low_money.png')
+                    rnf_delivery_img.setPos([0.2, 0])
+                elif mag1 == 2:
+                    rnf_delivery_img.setImage('stim/reward_med_money.png')
+                    rnf_delivery_img.setPos([0.1, 0])
+                elif mag1 == 3: 
+                    rnf_delivery_img.setImage('stim/reward_high_money.png')
+                    rnf_delivery_img.setPos([0, 0])
+            elif key_resp_2.keys == "9":
+                if mag2 == 1:
+                    rnf_delivery_img.setImage('stim/reward_low_money.png')
+                    rnf_delivery_img.setPos([0.2, 0])
+                elif mag2 == 2:
+                    rnf_delivery_img.setImage('stim/reward_med_money.png')
+                    rnf_delivery_img.setPos([0.1, 0])
+                elif mag2 == 3: 
+                    rnf_delivery_img.setImage('stim/reward_high_money.png') 
+                    rnf_delivery_img.setPos([0, 0])
+
+        elif expInfo['reward'] == "juice":
+            if key_resp_2.keys == "4":
+                if mag1 == 1:
+                    rnf_delivery_img.setImage('stim/reward_low_juice.png')
+                    rnf_delivery_img.setSize(0.2)
+                elif mag1 == 2:
+                    rnf_delivery_img.setImage('stim/reward_med_juice.png')
+                elif mag1 == 3:
+                    rnf_delivery_img.setImage('stim/reward_high_juice.png')
+            elif key_resp_2.keys == "9":
+                if mag2 == 1:
+                    rnf_delivery_img.setImage('stim/reward_low_juice.png')
+                    rnf_delivery_img.setSize(0.2)
+                elif mag2 == 2:
+                    rnf_delivery_img.setImage('stim/reward_med_juice.png')
+                elif mag2 == 3:
+                    rnf_delivery_img.setImage('stim/reward_high_juice.png')
+    else:
+        rnf_delivery_img.setOpacity(0)  
+        rnf_delivery_img.setImage('none')
     
     # -------Start Routine "rnf_delivery"-------
     while continueRoutine and routineTimer.getTime() > 0:
@@ -1773,7 +1767,7 @@ trials.saveAsExcel(filename + '.xlsx', sheetName='trials',
 
 # # show screen to wait for next run
 # if currentRun in [1,2,3]: # if not the last run, show the screen
-# 	wait_for_next_run()
+#   wait_for_next_run()
 
 # Experiment finished, now show last blank screen
 
