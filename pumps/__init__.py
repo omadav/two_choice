@@ -2,7 +2,7 @@
 # Implementation is designed to be modular to enable operation of pumps
 # from a variety of manufacturers.
 # 
-# Based on pumps.m master/slave interface for Matlab by ...
+# Based on pumps.m main/subordinate interface for Matlab by ...
 # Lloyd Ung
 #
 # Author: Wolfgang M. Pauli
